@@ -5,7 +5,6 @@ Chess...Canvas...In...
 ## Contents
 
 1. [Introduction](#introduction)
-1. [Contributors](#contributors)
 1. [Desired Feature List](#desired-feature-list)
 
 [Top](#top)
