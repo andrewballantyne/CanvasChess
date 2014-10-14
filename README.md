@@ -16,10 +16,6 @@ A Canvas Chess Application for Mobile and Desktop.
 
 [Top](#top)
 
-## Contributors
-
-[Top](#top)
-
 ## Desired Feature List
 
 * Rotatable/scalable screen sizes to play on any device in any orientation. 
