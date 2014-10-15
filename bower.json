@@ -6,6 +6,7 @@
     "demo.html"
   ],
   "dependencies": {
-    "chess.js": "v0.1"
+    "chess.js": "v0.1",
+    "class-vehicle": "ballantyno/Ballantyno"
   }
 }
