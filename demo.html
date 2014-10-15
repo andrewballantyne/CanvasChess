@@ -7,6 +7,12 @@
     <title>Canvas Chess Demo</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+    <style>
+		canvas {
+			border: 1px solid black;
+		}
+    </style>
   </head>
   <body>
     <div class="container">
@@ -14,7 +20,7 @@
       <div class="row">
         <div class="col-md-9 col-sm-12">
           <div id="demoBoard">
-            And this is where I'd put my canvas chessboard.....IF I HAD ONE.
+            <!-- Chess Board goes here -->
           </div>
         </div>
         <div class="col-md-3 col-sm-12">
@@ -58,17 +64,23 @@
     </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-  <script src="assets/chess.js"></script>
-  <!--Uncomment this script tag when we have an actual library -->
-  <!--<script src="src/CanvasChess.js"></script>-->
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="http://code.createjs.com/createjs-2013.12.12.min.js"></script>
+
+  <!-- Include Library Dependencies -->
+  <script src="dependencies/chess.js"></script>
+  <script src="dependencies/ClassVehicle.js"></script>
+
+  <!-- Include our UI Classes -->
+  <script src="src/CanvasChess.js"></script>
+  <script src="src/ChessBoard.js"></script>
+
   <script>
   // put chessboard demo javascript here
-  /*
   var options = {
     // some options go here
   };
   var chessBoard = new CanvasChess('demoBoard', options);
-  */
   </script>
   </body>
 </html>
