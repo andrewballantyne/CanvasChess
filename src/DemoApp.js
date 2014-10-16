@@ -12,12 +12,4 @@ demoApp.controller('demoController', function ($scope) {
 		}
 		return $scope.chessBoard.getFenString();
 	};
-
-	$scope.resetBoard = function() {
-		$scope.chessBoard.resetBoard();
-	};
-
-	$scope.clearBoard = function() {
-		$scope.chessBoard.clearBoard();
-	}
 });
