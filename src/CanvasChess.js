@@ -30,11 +30,33 @@ var CanvasChess = (function (isAbstract) {
 	/* ----- Protected Variables ----- */
 
 	/* ----- Public Methods ----- */
+	_CanvasChess.prototype.resetBoard = function() {
+		return this._model.reset();
+	};
+
+	_CanvasChess.prototype.clearBoard = function() {
+		return this._model.clear();
+	};
+
+	_CanvasChess.prototype.getFenString = function() {
+		return this._model.fen();
+	};
+
+	_CanvasChess.prototype.setFenString = function(newFen) {
+		var validate = this._model.validate_fen(newFen);
+		console.log(validate);
+		if (validate.valid) {
+			return this._model.load(newFen);
+		} else {
+			return 
+		}
+	};
 
 	/* ----- Protected Methods ----- */
 
 	/* ----- Private Variables ----- */
 	_CanvasChess.prototype._canvasId = 'canvasChess';
+	_CanvasChess.prototype._model = new Chess();
 	/** @type DOMElement **/
 	_CanvasChess.prototype._canvasTag = null;
 	/** @type createjs.Stage **/

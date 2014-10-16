@@ -5,8 +5,9 @@
   "ignore": [
     "demo.html"
   ],
-  "dependencies": {
-    "chess.js": "v0.1",
+  "devDependencies": {
+    "angular": "1.3",
+    "chess.js": "jhlywa/chess.js",
     "class-vehicle": "ballantyno/Ballantyno"
   }
 }
