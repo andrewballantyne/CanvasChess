@@ -28,13 +28,15 @@ Some reasons to use CanvasChess:
 * Callback registration allows your application to receive data with every
   internal event.
 
-[Top](#top)
+[Back to Top](#top)
 
 ## Dependencies
 
 CanvasChess makes use of the following dependencies:
 
 * [Chess.js](https://github.com/jhlywa/chess.js) for all of the chess logic
+
+[Back to Top](#top)
 
 ## Getting started
 
@@ -56,7 +58,7 @@ Then initialize the main class.
 
 It's that simple.
 
-[Top](#top)
+[Back to Top](#top)
 
 ## Board options
 
@@ -84,3 +86,5 @@ The CanvasChess class can take a set of options on initialization.
         }
     };
     var myBoard = new CanvasChess('myChessBoard', myOptions);
+
+[Back to Top](#top)
