@@ -48,7 +48,7 @@ var CanvasChess = (function (isAbstract) {
 		if (validate.valid) {
 			return this._model.load(newFen);
 		} else {
-			return 
+			return null;
 		}
 	};
 

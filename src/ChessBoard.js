@@ -26,6 +26,11 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 	}
 
 	/* ----- Public Variables ----- */
+	_ChessBoard.prototype.letters = ["a","b","c","d","e","f","g","h"];
+
+	/* ----- Protected Variables ----- */
+
+	/* ----- Public Methods ----- */
 	_ChessBoard.prototype.updateSideLength = function (newLength) {
 		_calculateLength.call(this, newLength);
 
@@ -33,10 +38,6 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 		_renderLabels.call(this);
 		_renderBoard.call(this);
 	};
-
-	/* ----- Protected Variables ----- */
-
-	/* ----- Public Methods ----- */
 
 	/* ----- Protected Methods ----- */
 
@@ -56,9 +57,8 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 		var labelsPerSide = 8;
 		var font = _getFontSize.call(this) + 'px Arial';
 		var labelColor = 'black';
-		var letters = ["A","B","C","D","E","F","G","H"];
 		for (var num = 0; num < labelsPerSide; num++) {
-			var topText = new createjs.Text(letters[num], font, labelColor);
+			var topText = new createjs.Text(this.letters[num], font, labelColor);
 			topText.regX = topText.getMeasuredWidth() / 2;
 			topText.regY = topText.getMeasuredLineHeight() / 2;
 			topText.x = this._gridCellSideLength * (num+1) + (this._gridCellSideLength / 2);
@@ -82,7 +82,7 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 		}
 	}
 	function _renderBoard() {
-		var board = new ChessGrid(this._gridCellSideLength, 'blue', 'lightblue');
+		var board = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf');
 		board.x = this._gridCellSideLength;
 		board.y = this._gridCellSideLength;
 		this.addChild(board);

@@ -24,6 +24,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
 		_drawLightBackdrop.call(this);
 		_drawDarkSquares.call(this);
+		_drawPieces.call(this);
 	}
 
 	/* ----- Public Variables ----- */
@@ -65,6 +66,66 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 			drawDark = !drawDark; // new row, flip colors
 		}
 		this.addChild(darkSquares);
+	}
+	function _drawPieces() {
+		var _this = this;
+
+		this.pieces = new Image();
+		this.pieces.src = 'assets/sprites/pieces/Chess_Pieces_Sprite.svg';
+		this.pieces.onload = function () {
+			var data = {
+				images: [_this.pieces],
+				frames: [
+					[0,0,45,45,0,22,22],
+					[45,0,45,45,0,22,22],
+					[90,0,45,45,0,22,22],
+					[135,0,45,45,0,22,22],
+					[180,0,45,45,0,22,22],
+					[225,0,45,45,0,22,22],
+					[0,45,45,45,0,22,22],
+					[45,45,45,45,0,22,22],
+					[90,45,45,45,0,22,22],
+					[135,45,45,45,0,22,22],
+					[180,45,45,45,0,22,22],
+					[225,45,45,45,0,22,22]
+				],
+				animations: {
+					"wki": { frames: [0] },
+					"wq": { frames: [1] },
+					"wb": { frames: [2] },
+					"wkn": { frames: [3] },
+					"wr": { frames: [4] },
+					"wp": { frames: [5] },
+					"bki": { frames: [6] },
+					"bq": { frames: [7] },
+					"bb": { frames: [8] },
+					"bkn": { frames: [9] },
+					"br": { frames: [10] },
+					"bp": { frames: [11] }
+				}
+			};
+			var ss = new createjs.SpriteSheet(data);
+			var blackPawn = new ChessPiece(ss, "bp");
+			blackPawn.x = _this._squareLength / 2;
+			blackPawn.y = _this._squareLength + _this._squareLength / 2;
+			blackPawn.scaleX = blackPawn.scaleY = _this._squareLength / 45;
+			_this.addChild(blackPawn);
+			var blackRook = new ChessPiece(ss, "br");
+			blackRook.x = _this._squareLength / 2;
+			blackRook.y = _this._squareLength / 2;
+			blackRook.scaleX = blackRook.scaleY = _this._squareLength / 45;
+			_this.addChild(blackRook);
+			var blackKnight = new ChessPiece(ss, "bkn");
+			blackKnight.x = _this._squareLength + _this._squareLength / 2;
+			blackKnight.y = _this._squareLength / 2;
+			blackKnight.scaleX = blackKnight.scaleY = _this._squareLength / 45;
+			_this.addChild(blackKnight);
+			var blackBishop = new ChessPiece(ss, "bb");
+			blackBishop.x = _this._squareLength * 2 + _this._squareLength / 2;
+			blackBishop.y = _this._squareLength / 2;
+			blackBishop.scaleX = blackBishop.scaleY = _this._squareLength / 45;
+			_this.addChild(blackBishop);
+		};
 	}
 
 	/**
