@@ -45,21 +45,46 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 	_ChessBoard.prototype._gridCellSideLength = 0;
 
 	/* ----- Private Methods ----- */
+	function _getFontSize() {
+		return this._gridCellSideLength / 2.5;
+	}
 	function _calculateLength(sideLength) {
 		this._fullBoardSideLength = sideLength;
 		this._gridCellSideLength = this._fullBoardSideLength / 10;
 	}
 	function _renderLabels() {
-		var labels = new createjs.Shape();
-		labels.graphics.beginFill('gray').drawRect(0, 0, this._fullBoardSideLength, this._fullBoardSideLength);
-		this.addChild(labels);
+		var labelsPerSide = 8;
+		var font = _getFontSize.call(this) + 'px Arial';
+		var labelColor = 'black';
+		var letters = ["A","B","C","D","E","F","G","H"];
+		for (var num = 0; num < labelsPerSide; num++) {
+			var topText = new createjs.Text(letters[num], font, labelColor);
+			topText.regX = topText.getMeasuredWidth() / 2;
+			topText.regY = topText.getMeasuredLineHeight() / 2;
+			topText.x = this._gridCellSideLength * (num+1) + (this._gridCellSideLength / 2);
+			topText.y = this._gridCellSideLength / 2;
+			this.addChild(topText);
+
+			var bottomText = topText.clone();
+			bottomText.y = (this._gridCellSideLength * 9) + this._gridCellSideLength / 2;
+			this.addChild(bottomText);
+
+			var leftText = new createjs.Text(labelsPerSide - num, font, labelColor);
+			leftText.regX = leftText.getMeasuredWidth() / 2;
+			leftText.regY = leftText.getMeasuredLineHeight() / 2;
+			leftText.x = this._gridCellSideLength / 2;
+			leftText.y = this._gridCellSideLength * (num+1) + (this._gridCellSideLength / 2);
+			this.addChild(leftText);
+
+			var rightText = leftText.clone();
+			rightText.x = (this._gridCellSideLength * 9) + this._gridCellSideLength / 2;
+			this.addChild(rightText);
+		}
 	}
 	function _renderBoard() {
-		var board = new createjs.Shape();
-		board.graphics.beginFill('black').drawRect(0, 0, this._gridCellSideLength*8, this._gridCellSideLength*8);
+		var board = new ChessGrid(this._gridCellSideLength, 'blue', 'lightblue');
 		board.x = this._gridCellSideLength;
 		board.y = this._gridCellSideLength;
-
 		this.addChild(board);
 	}
 

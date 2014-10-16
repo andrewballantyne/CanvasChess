@@ -65,7 +65,6 @@ var CanvasChess = (function (isAbstract) {
 	_CanvasChess.prototype._containerTag = null;
 	_CanvasChess.prototype._containerHasFixedHeight = false;
 	_CanvasChess.prototype._canvasBorderBuffer = 15;
-	_CanvasChess.prototype._updateRenderObjects = [];
 
 	/** @type ChessBoard **/
 	_CanvasChess.prototype._board = null;
@@ -129,9 +128,9 @@ var CanvasChess = (function (isAbstract) {
 	}
 	function _renderFunction() {
 		this._board = new ChessBoard(_getLength.call(this));
-		this._board.x = this._canvasBorderBuffer;
+		this._board.regX = _getLength.call(this);
+		this._board.x = this._canvasBorderBuffer + _getLength.call(this);
 		this._board.y = this._canvasBorderBuffer;
-		this._updateRenderObjects.push(this._board);
 		this._stage.addChild(this._board);
 	}
 	function _getLength() {
