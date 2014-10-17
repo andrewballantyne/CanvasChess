@@ -8,27 +8,27 @@
  * @extends createjs.Container
  */
 var ChessGrid = (function (ParentClass, isAbstract) {
-	/* Setup Extend Link and Setup Class Defaults */
-	ClassVehicle.setupClassExtend(_ChessGrid, ParentClass, isAbstract);
+  /* Setup Extend Link and Setup Class Defaults */
+  ClassVehicle.setupClassExtend(_ChessGrid, ParentClass, isAbstract);
 
-	/**
-	 * @constructor
-	 *
-	 */
-	function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss) {
-		ParentClass.call(this); // super call
+  /**
+   * @constructor
+   *
+   */
+  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss) {
+    ParentClass.call(this); // super call
 
     this._ss = ss;
-		this._squareLength = squareSideLength;
-		this._darkColor = darkColor;
-		this._lightColor = lightColor;
+    this._squareLength = squareSideLength;
+    this._darkColor = darkColor;
+    this._lightColor = lightColor;
 
-		_drawLightBackdrop.call(this);
-		_drawDarkSquares.call(this);
+    _drawLightBackdrop.call(this);
+    _drawDarkSquares.call(this);
     this.updatePiecesWithFen(null); // TODO: call this from outside the ChessGrid
   }
 
-	/* ----- Public Variables ----- */
+  /* ----- Public Variables ----- */
   /**
    * Update the Grid Size.
    *
@@ -89,19 +89,19 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     this.addChild(piece);
   };
 
-	/* ----- Protected Variables ----- */
+  /* ----- Protected Variables ----- */
 
-	/* ----- Public Methods ----- */
+  /* ----- Public Methods ----- */
 
-	/* ----- Protected Methods ----- */
+  /* ----- Protected Methods ----- */
 
-	/* ----- Private Variables ----- */
+  /* ----- Private Variables ----- */
   /** @type createjs.SpriteSheet **/
   _ChessGrid.prototype._ss = null;
   _ChessGrid.prototype._squareLength = 0;
-	_ChessGrid.prototype._gridSize = 8; // 8x8
-	_ChessGrid.prototype._lightColor = 'white';
-	_ChessGrid.prototype._darkColor = 'black';
+  _ChessGrid.prototype._gridSize = 8; // 8x8
+  _ChessGrid.prototype._lightColor = 'white';
+  _ChessGrid.prototype._darkColor = 'black';
 
   /** @type createjs.Shape **/
   _ChessGrid.prototype._lightBackdrop = null;
@@ -111,9 +111,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   _ChessGrid.prototype._activePieces = [];
 
   /* ----- Private Methods ----- */
-	function _drawLightBackdrop() {
+  function _drawLightBackdrop() {
     if (this._lightBackdrop == null) {
-		  this._lightBackdrop = new createjs.Shape();
+      this._lightBackdrop = new createjs.Shape();
       this.addChild(this._lightBackdrop);
     } else {
       this._lightBackdrop.graphics.clear();
@@ -122,8 +122,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     this._lightBackdrop.graphics
       .beginFill(this._lightColor)
       .drawRect(0, 0, this._squareLength * this._gridSize, this._squareLength * this._gridSize);
-	}
-	function _drawDarkSquares() {
+  }
+
+  function _drawDarkSquares() {
     if (this._darkSquares == null) {
       this._darkSquares = new createjs.Shape();
       this.addChild(this._darkSquares);
@@ -131,24 +132,24 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       this._darkSquares.graphics.clear();
     }
 
-		var x = 0;
-		var y = 0;
-		var drawDark = false;
-		for (var r = 0; r < this._gridSize; r++) {
-			for (var c = 0; c < this._gridSize; c++) {
-				if (drawDark) {
-					this._darkSquares.graphics
+    var x = 0;
+    var y = 0;
+    var drawDark = false;
+    for (var r = 0; r < this._gridSize; r++) {
+      for (var c = 0; c < this._gridSize; c++) {
+        if (drawDark) {
+          this._darkSquares.graphics
             .beginFill(this._darkColor)
             .drawRect(x, y, this._squareLength, this._squareLength);
-				}
-				drawDark = !drawDark;
-				x += this._squareLength;
-			}
-			y += this._squareLength;
-			x = 0; // new row, start over from the left side
-			drawDark = !drawDark; // new row, flip colors
-		}
-	}
+        }
+        drawDark = !drawDark;
+        x += this._squareLength;
+      }
+      y += this._squareLength;
+      x = 0; // new row, start over from the left side
+      drawDark = !drawDark; // new row, flip colors
+    }
+  }
 
   /**
    * @param boardCoordinate - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]
@@ -188,6 +189,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       };
     }
   }
+
   function _updatePieceSize() {
     for (var i = 0; i < this._activePieces.length; i++) {
       var piece = this._activePieces[i];
@@ -196,17 +198,17 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     }
   }
 
-	/**
-	 * Entry point into class. This method will only contain needed class-level checks (ie, isAbstract).
-	 */
-	function _ChessGrid() {
-		/* Check Abstract-ness */
-		ClassVehicle.checkAbstract.call(this, _ChessGrid);
+  /**
+   * Entry point into class. This method will only contain needed class-level checks (ie, isAbstract).
+   */
+  function _ChessGrid() {
+    /* Check Abstract-ness */
+    ClassVehicle.checkAbstract.call(this, _ChessGrid);
 
-		/* Call constructor */
-		ChessGridConstructor.apply(this, arguments);
-	}
+    /* Call constructor */
+    ChessGridConstructor.apply(this, arguments);
+  }
 
-	/* Return the class, ready for a new ...() */
-	return _ChessGrid;
+  /* Return the class, ready for a new ...() */
+  return _ChessGrid;
 })(createjs.Container, false);

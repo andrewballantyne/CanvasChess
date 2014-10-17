@@ -8,31 +8,31 @@
  * @extends createjs.Sprite
  */
 var ChessPiece = (function (ParentClass, isAbstract) {
-	/* Setup Extend Link and Setup Class Defaults */
-	ClassVehicle.setupClassExtend(_ChessPiece, ParentClass, isAbstract);
+  /* Setup Extend Link and Setup Class Defaults */
+  ClassVehicle.setupClassExtend(_ChessPiece, ParentClass, isAbstract);
 
-	/**
-	 * @constructor
-	 *
+  /**
+   * @constructor
+   *
    * @param ss - The SpriteSheet that is to be used to fetch the piece
    * @param piece - The piece name (that will correspond to the sprite name
    * @param location - The location object {id:'e2', x:45, y:45}
-	 */
-	function ChessPieceConstructor(ss, piece, location) {
-		ParentClass.call(this, ss, piece); // super call
+   */
+  function ChessPieceConstructor(ss, piece, location) {
+    ParentClass.call(this, ss, piece); // super call
 
     this.x = location.x;
     this.y = location.y;
 
     this.gridLocation = location.id;
-	}
+  }
 
-	/* ----- Public Variables ----- */
+  /* ----- Public Variables ----- */
   _ChessPiece.prototype.gridLocation = '';
 
-	/* ----- Protected Variables ----- */
+  /* ----- Protected Variables ----- */
 
-	/* ----- Public Methods ----- */
+  /* ----- Public Methods ----- */
   /**
    * Update the location of this piece.
    *
@@ -43,23 +43,23 @@ var ChessPiece = (function (ParentClass, isAbstract) {
     this.y = newBoardLocation.y;
   };
 
-	/* ----- Protected Methods ----- */
+  /* ----- Protected Methods ----- */
 
-	/* ----- Private Variables ----- */
+  /* ----- Private Variables ----- */
 
-	/* ----- Private Methods ----- */
+  /* ----- Private Methods ----- */
 
-	/**
-	 * Entry point into class. This method will only contain needed class-level checks (ie, isAbstract).
-	 */
-	function _ChessPiece() {
-		/* Check Abstract-ness */
-		ClassVehicle.checkAbstract.call(this, _ChessPiece);
+  /**
+   * Entry point into class. This method will only contain needed class-level checks (ie, isAbstract).
+   */
+  function _ChessPiece() {
+    /* Check Abstract-ness */
+    ClassVehicle.checkAbstract.call(this, _ChessPiece);
 
-		/* Call constructor */
-		ChessPieceConstructor.apply(this, arguments);
-	}
+    /* Call constructor */
+    ChessPieceConstructor.apply(this, arguments);
+  }
 
-	/* Return the class, ready for a new ...() */
-	return _ChessPiece;
+  /* Return the class, ready for a new ...() */
+  return _ChessPiece;
 })(createjs.Sprite, false);
