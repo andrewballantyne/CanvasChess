@@ -83,14 +83,13 @@ var CanvasChess = (function (isAbstract) {
 
   _CanvasChess.prototype.setFenString = function (newFen) {
     var validate = this._model.validate_fen(newFen);
-    console.log(validate);
     if (validate.valid) {
       if (this._board !== null) {
         this._board.useFen(newFen);
       }
       return this._model.load(newFen);
     } else {
-      return null;
+      return this._model.fen();
     }
   };
 
