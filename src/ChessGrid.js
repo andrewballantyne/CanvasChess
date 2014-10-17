@@ -212,17 +212,20 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     var centerOffset = this._squareLength / 2;
 
     var boardSideLength = this._squareLength * this._gridSize;
+    var x = 0;
+    var y = 0;
     if (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) {
-      return {
-        id: boardCoordinate,
-        x: this._squareLength * letterPos + centerOffset,
-        y: boardSideLength - this._squareLength * (theNumber - 1) - centerOffset
-      }
+      x = this._squareLength * letterPos + centerOffset,
+      y = boardSideLength - this._squareLength * (theNumber - 1) - centerOffset
     } else {
-      return {
-        x: boardSideLength - this._squareLength * letterPos - centerOffset,
-        y: this._squareLength * (theNumber - 1) + centerOffset
-      };
+      x = boardSideLength - this._squareLength * letterPos - centerOffset;
+      y = this._squareLength * (theNumber - 1) + centerOffset;
+    }
+    
+    return {
+      id: boardCoordinate,
+      x: x,
+      y: y
     }
   }
 

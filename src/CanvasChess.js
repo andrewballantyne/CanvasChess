@@ -35,6 +35,10 @@ var CanvasChess = (function (isAbstract) {
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
+  _CanvasChess.prototype.rotate = function () {
+    CanvasChess.bottomPlayer = (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) ? CanvasChess.PLAYER_BLACK : CanvasChess.PLAYER_WHITE;
+    this._board.updateSideLength(_getLength.call(this));
+  }
   _CanvasChess.prototype.resetBoard = function () {
     return this._model.reset();
   };
