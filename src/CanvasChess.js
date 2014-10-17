@@ -38,6 +38,34 @@ var CanvasChess = (function (isAbstract) {
 		return this._model.clear();
 	};
 
+	_CanvasChess.prototype.history = function() {
+		if (this._moves) {
+			return this._moves;
+		}
+		var history = this._model.history();
+		this._moves = [];
+		for (i = 0; i < history.length; i++) {
+			if (i === history.length-1) {
+				this._moves.push({white: history[i], black:''});
+			} else {
+				this._moves.push({white: history[i], black:history[i+1]});
+				i++;
+			}
+		}
+		return this._moves;
+	};
+
+	_CanvasChess.prototype.randomMove = function()
+	{
+		var moveIndex = Math.floor(Math.random() * this._model.moves().length);
+		this.move(this._model.moves()[moveIndex]);
+	};
+
+	_CanvasChess.prototype.move = function(move) {
+		delete this._moves;
+		return this._model.move(move);
+	};
+
 	_CanvasChess.prototype.getFenString = function() {
 		return this._model.fen();
 	};
