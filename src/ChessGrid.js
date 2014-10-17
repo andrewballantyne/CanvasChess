@@ -227,8 +227,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   }
 
   function _updatePieceSize() {
-    for (var i = 0; i < this._activePieces.length; i++) {
-      var piece = this._activePieces[i];
+    for (var i = 0; i < this._pieceContainer.children.length; i++) {
+      var piece = this._pieceContainer.children[i];
       piece.updateLocation(_getPlacementPosition.call(this, piece.gridLocation));
       piece.scaleX = piece.scaleY = this._squareLength / 45;
     }
