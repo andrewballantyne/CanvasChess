@@ -51,8 +51,10 @@ var CanvasChess = (function (isAbstract) {
     this._moves = [];
     for (var i = 0; i < history.length; i++) {
       if (i === history.length - 1) {
+        // white move
         this._moves.push({white: history[i], black: ''});
       } else {
+        // black move
         this._moves.push({white: history[i], black: history[i + 1]});
         i++;
       }
@@ -71,13 +73,18 @@ var CanvasChess = (function (isAbstract) {
   };
 
   _CanvasChess.prototype.getFenString = function () {
-    return this._model.fen();
+    var fen = this._model.fen();
+    if (this._board != null)
+      this._board.useFen(fen);
+    return fen;
   };
 
   _CanvasChess.prototype.setFenString = function (newFen) {
     var validate = this._model.validate_fen(newFen);
     console.log(validate);
     if (validate.valid) {
+      if (this._board != null)
+        this._board.useFen(newFen);
       return this._model.load(newFen);
     } else {
       return null;
@@ -223,6 +230,8 @@ var CanvasChess = (function (isAbstract) {
     this._board.x = this._canvasBorderBuffer + _getLength.call(this);
     this._board.y = this._canvasBorderBuffer;
     this._stage.addChild(this._board);
+
+    this._board.useFen(this._model.fen());
   }
 
   function _getLength() {

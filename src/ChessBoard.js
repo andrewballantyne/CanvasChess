@@ -34,6 +34,19 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
+  /**
+   * Set the Chess Board to use a Fen string. This will completely replace the current set positions.
+   *
+   * @param fenString {string} - The new Fen String to override everything with
+   */
+  _ChessBoard.prototype.useFen = function (fenString) {
+    this._boardGrid.updatePiecesWithFen(fenString);
+  };
+  /**
+   * Update the size of the canvas.
+   *
+   * @param newLength {number} - The new pixel length of the square chess board
+   */
   _ChessBoard.prototype.updateSideLength = function (newLength) {
     _calculateLength.call(this, newLength);
 

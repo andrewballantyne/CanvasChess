@@ -25,7 +25,6 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
-    this.updatePiecesWithFen(null); // TODO: call this from outside the ChessGrid
   }
 
   /* ----- Public Variables ----- */
@@ -49,44 +48,81 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @param fenString {string} - A fenString to set the board to
    */
   _ChessGrid.prototype.updatePiecesWithFen = function (fenString) {
-    var piece = null;
+    /* Fen String Cheat Sheet
+      Take the starting position:
+        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+                            1                       2   3  4 5 6
 
-    piece = new ChessPiece(this._ss, 'K', _getPlacementPosition.call(this, 'a1'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'R', _getPlacementPosition.call(this, 'b1'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'P', _getPlacementPosition.call(this, 'a2'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'P', _getPlacementPosition.call(this, 'b2'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'R', _getPlacementPosition.call(this, 'f1'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'p', _getPlacementPosition.call(this, 'e2'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'k', _getPlacementPosition.call(this, 'f6'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'b', _getPlacementPosition.call(this, 'f5'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
-    piece = new ChessPiece(this._ss, 'q', _getPlacementPosition.call(this, 'c5'));
-    piece.scaleX = piece.scaleY = this._squareLength / 45;
-    this._activePieces.push(piece);
-    this.addChild(piece);
+      lower case letters are black
+      upper case letters are white
+
+      (1) Piece Position:
+        rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+
+        / = new line
+        # = empty spaces (8 = eight empty spaces or whole line)
+
+      (2) Player's Turn:
+        w
+
+        w = white
+        b = black
+
+      (3) Castling Possibilities:
+        KQkq
+
+        KQ - white K and Q castle possibilities
+        kq - black k and q castle possibilities
+        '-' will denote no castling available left
+
+      (4) En Passant:
+        -
+
+        e3 : En Passant is available for 1 turn attacking e3 (due to a pawn move from e2 to e4)
+        '-' denotes no current en passant
+
+      (5) Halfmove clock:
+        0
+
+        This is the number of halfmoves since the last capture or pawn advance. This is used to determine if a draw can be claimed under
+        the fifty-move rule.
+
+      (6) Fullmove number:
+        1
+
+        The number of the full move. It starts at 1, and is incremented after Black's move.
+     */
+
+    if (this._pieceContainer == null) {
+      this._pieceContainer = new createjs.Container();
+      this.addChild(this._pieceContainer);
+    } else {
+      this._pieceContainer.removeAllChildren();
+    }
+
+    var fenStringSections = fenString.split(' ');
+    var lines = fenStringSections[0].split('/');
+
+    for (var i = 0; i < lines.length; i++) {
+      var thisLine = lines[i];
+
+      var xPos = 0;
+      for (var j = 0; j < thisLine.length; j++, xPos++) {
+        var thisPiece = thisLine[j];
+        if (!isNaN(parseInt(thisPiece))) {
+          // Oh, not a piece, a spacer
+          xPos += parseInt(thisPiece) - 1;
+        } else {
+          // We have a piece, let's place it
+          var loc = ChessBoard.letters[xPos] + (8 - i).toString();
+
+          var piece = null;
+          piece = new ChessPiece(this._ss, thisPiece, _getPlacementPosition.call(this, loc));
+          piece.scaleX = piece.scaleY = this._squareLength / 45;
+          this._pieceContainer.addChild(piece);
+        }
+      }
+    }
   };
 
   /* ----- Protected Variables ----- */
@@ -107,8 +143,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   _ChessGrid.prototype._lightBackdrop = null;
   /** @type createjs.Shape **/
   _ChessGrid.prototype._darkSquares = null;
-  /** @type ChessPiece[] **/
-  _ChessGrid.prototype._activePieces = [];
+  /** @type createjs.Container **/
+  _ChessGrid.prototype._pieceContainer = null;
 
   /* ----- Private Methods ----- */
   function _drawLightBackdrop() {
