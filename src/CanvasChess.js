@@ -10,6 +10,11 @@ var CanvasChess = (function (isAbstract) {
 	/* Setup Class Defaults */
 	ClassVehicle.setupClass(_CanvasChess, isAbstract);
 
+  /* ----- Static Variables ----- */
+  _CanvasChess.PLAYER_WHITE = "w";
+  _CanvasChess.PLAYER_BLACK = "b";
+  _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
+
 	/**
 	 * @constructor
 	 *
@@ -22,7 +27,7 @@ var CanvasChess = (function (isAbstract) {
 
 		_setupResizeListener.call(this);
 
-		_renderFunction.call(this);
+    _loadAssets.call(this);
 	}
 
 	/* ----- Public Variables ----- */
@@ -83,18 +88,22 @@ var CanvasChess = (function (isAbstract) {
 	/* ----- Protected Methods ----- */
 
 	/* ----- Private Variables ----- */
+  // Model
+  _CanvasChess.prototype._model = new Chess();
+
+  // DOM
 	_CanvasChess.prototype._canvasId = 'canvasChess';
-	_CanvasChess.prototype._model = new Chess();
 	/** @type DOMElement **/
 	_CanvasChess.prototype._canvasTag = null;
-	/** @type createjs.Stage **/
-	_CanvasChess.prototype._stage = null;
 	/** @type DOMElement **/
 	_CanvasChess.prototype._containerTag = null;
 	_CanvasChess.prototype._containerHasFixedHeight = false;
 	_CanvasChess.prototype._canvasBorderBuffer = 15;
 
-	/** @type ChessBoard **/
+  // Canvas
+  /** @type createjs.Stage **/
+  _CanvasChess.prototype._stage = null;
+  /** @type ChessBoard **/
 	_CanvasChess.prototype._board = null;
 
 	/* ----- Private Methods ----- */
@@ -154,8 +163,59 @@ var CanvasChess = (function (isAbstract) {
 			}, 0);
 		});
 	}
-	function _renderFunction() {
-		this._board = new ChessBoard(_getLength.call(this));
+  function _loadAssets() {
+    var _this = this;
+
+    var pieces = new Image();
+    pieces.src = 'assets/sprites/pieces/Chess_Pieces_Sprite.svg';
+    pieces.onload = function () {
+      var data = {
+        images: [this],
+        frames: [
+          [0,0,45,45,0,22,22],
+          [45,0,45,45,0,22,22],
+          [90,0,45,45,0,22,22],
+          [135,0,45,45,0,22,22],
+          [180,0,45,45,0,22,22],
+          [225,0,45,45,0,22,22],
+
+          [0,45,45,45,0,22,22],
+          [45,45,45,45,0,22,22],
+          [90,45,45,45,0,22,22],
+          [135,45,45,45,0,22,22],
+          [180,45,45,45,0,22,22],
+          [225,45,45,45,0,22,22]
+        ],
+        animations: {
+          // White
+          "K": { frames: [0] },
+          "Q": { frames: [1] },
+          "B": { frames: [2] },
+          "N": { frames: [3] },
+          "R": { frames: [4] },
+          "P": { frames: [5] },
+
+          // Black
+          "k": { frames: [6] },
+          "q": { frames: [7] },
+          "b": { frames: [8] },
+          "n": { frames: [9] },
+          "r": { frames: [10] },
+          "p": { frames: [11] }
+        }
+      };
+      var ss = new createjs.SpriteSheet(data);
+
+      // Now that we have the image loaded, let's create the assets that use it
+      _renderFunction.call(_this, ss);
+    };
+  }
+  /**
+   * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
+   * @private
+   */
+	function _renderFunction(ss) {
+		this._board = new ChessBoard(_getLength.call(this), ss);
 		this._board.regX = _getLength.call(this);
 		this._board.x = this._canvasBorderBuffer + _getLength.call(this);
 		this._board.y = this._canvasBorderBuffer;

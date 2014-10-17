@@ -15,19 +15,79 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 	 * @constructor
 	 *
 	 */
-	function ChessGridConstructor(squareSideLength, darkColor, lightColor) {
+	function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss) {
 		ParentClass.call(this); // super call
 
+    this._ss = ss;
 		this._squareLength = squareSideLength;
 		this._darkColor = darkColor;
 		this._lightColor = lightColor;
 
 		_drawLightBackdrop.call(this);
 		_drawDarkSquares.call(this);
-		_drawPieces.call(this);
-	}
+    this.updatePiecesWithFen(null); // TODO: call this from outside the ChessGrid
+  }
 
 	/* ----- Public Variables ----- */
+  /**
+   * Update the Grid Size.
+   *
+   * @param squareSideLength {number} - The new side length
+   */
+  _ChessGrid.prototype.updateSize = function (squareSideLength) {
+    // Save the length
+    this._squareLength = squareSideLength;
+
+    // Update all children
+    _drawLightBackdrop.call(this);
+    _drawDarkSquares.call(this);
+    _updatePieceSize.call(this);
+  };
+  /**
+   * Update entire grid with a fen string; This will clear the existing pieces.
+   *
+   * @param fenString {string} - A fenString to set the board to
+   */
+  _ChessGrid.prototype.updatePiecesWithFen = function (fenString) {
+    var piece = null;
+
+    piece = new ChessPiece(this._ss, 'K', _getPlacementPosition.call(this, 'a1'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'R', _getPlacementPosition.call(this, 'b1'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'P', _getPlacementPosition.call(this, 'a2'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'P', _getPlacementPosition.call(this, 'b2'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'R', _getPlacementPosition.call(this, 'f1'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'p', _getPlacementPosition.call(this, 'e2'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'k', _getPlacementPosition.call(this, 'f6'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'b', _getPlacementPosition.call(this, 'f5'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+    piece = new ChessPiece(this._ss, 'q', _getPlacementPosition.call(this, 'c5'));
+    piece.scaleX = piece.scaleY = this._squareLength / 45;
+    this._activePieces.push(piece);
+    this.addChild(piece);
+  };
 
 	/* ----- Protected Variables ----- */
 
@@ -36,19 +96,40 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 	/* ----- Protected Methods ----- */
 
 	/* ----- Private Variables ----- */
-	_ChessGrid.prototype._squareLength = 0;
+  /** @type createjs.SpriteSheet **/
+  _ChessGrid.prototype._ss = null;
+  _ChessGrid.prototype._squareLength = 0;
 	_ChessGrid.prototype._gridSize = 8; // 8x8
 	_ChessGrid.prototype._lightColor = 'white';
 	_ChessGrid.prototype._darkColor = 'black';
 
-	/* ----- Private Methods ----- */
+  /** @type createjs.Shape **/
+  _ChessGrid.prototype._lightBackdrop = null;
+  /** @type createjs.Shape **/
+  _ChessGrid.prototype._darkSquares = null;
+  /** @type ChessPiece[] **/
+  _ChessGrid.prototype._activePieces = [];
+
+  /* ----- Private Methods ----- */
 	function _drawLightBackdrop() {
-		var bg = new createjs.Shape();
-		bg.graphics.beginFill(this._lightColor).drawRect(0, 0, this._squareLength * this._gridSize, this._squareLength * this._gridSize);
-		this.addChild(bg);
+    if (this._lightBackdrop == null) {
+		  this._lightBackdrop = new createjs.Shape();
+      this.addChild(this._lightBackdrop);
+    } else {
+      this._lightBackdrop.graphics.clear();
+    }
+
+    this._lightBackdrop.graphics
+      .beginFill(this._lightColor)
+      .drawRect(0, 0, this._squareLength * this._gridSize, this._squareLength * this._gridSize);
 	}
 	function _drawDarkSquares() {
-		var darkSquares = new createjs.Shape();
+    if (this._darkSquares == null) {
+      this._darkSquares = new createjs.Shape();
+      this.addChild(this._darkSquares);
+    } else {
+      this._darkSquares.graphics.clear();
+    }
 
 		var x = 0;
 		var y = 0;
@@ -56,7 +137,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 		for (var r = 0; r < this._gridSize; r++) {
 			for (var c = 0; c < this._gridSize; c++) {
 				if (drawDark) {
-					darkSquares.graphics.beginFill(this._darkColor).drawRect(x, y, this._squareLength, this._squareLength);
+					this._darkSquares.graphics
+            .beginFill(this._darkColor)
+            .drawRect(x, y, this._squareLength, this._squareLength);
 				}
 				drawDark = !drawDark;
 				x += this._squareLength;
@@ -65,68 +148,53 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 			x = 0; // new row, start over from the left side
 			drawDark = !drawDark; // new row, flip colors
 		}
-		this.addChild(darkSquares);
 	}
-	function _drawPieces() {
-		var _this = this;
 
-		this.pieces = new Image();
-		this.pieces.src = 'assets/sprites/pieces/Chess_Pieces_Sprite.svg';
-		this.pieces.onload = function () {
-			var data = {
-				images: [_this.pieces],
-				frames: [
-					[0,0,45,45,0,22,22],
-					[45,0,45,45,0,22,22],
-					[90,0,45,45,0,22,22],
-					[135,0,45,45,0,22,22],
-					[180,0,45,45,0,22,22],
-					[225,0,45,45,0,22,22],
-					[0,45,45,45,0,22,22],
-					[45,45,45,45,0,22,22],
-					[90,45,45,45,0,22,22],
-					[135,45,45,45,0,22,22],
-					[180,45,45,45,0,22,22],
-					[225,45,45,45,0,22,22]
-				],
-				animations: {
-					"wki": { frames: [0] },
-					"wq": { frames: [1] },
-					"wb": { frames: [2] },
-					"wkn": { frames: [3] },
-					"wr": { frames: [4] },
-					"wp": { frames: [5] },
-					"bki": { frames: [6] },
-					"bq": { frames: [7] },
-					"bb": { frames: [8] },
-					"bkn": { frames: [9] },
-					"br": { frames: [10] },
-					"bp": { frames: [11] }
-				}
-			};
-			var ss = new createjs.SpriteSheet(data);
-			var blackPawn = new ChessPiece(ss, "bp");
-			blackPawn.x = _this._squareLength / 2;
-			blackPawn.y = _this._squareLength + _this._squareLength / 2;
-			blackPawn.scaleX = blackPawn.scaleY = _this._squareLength / 45;
-			_this.addChild(blackPawn);
-			var blackRook = new ChessPiece(ss, "br");
-			blackRook.x = _this._squareLength / 2;
-			blackRook.y = _this._squareLength / 2;
-			blackRook.scaleX = blackRook.scaleY = _this._squareLength / 45;
-			_this.addChild(blackRook);
-			var blackKnight = new ChessPiece(ss, "bkn");
-			blackKnight.x = _this._squareLength + _this._squareLength / 2;
-			blackKnight.y = _this._squareLength / 2;
-			blackKnight.scaleX = blackKnight.scaleY = _this._squareLength / 45;
-			_this.addChild(blackKnight);
-			var blackBishop = new ChessPiece(ss, "bb");
-			blackBishop.x = _this._squareLength * 2 + _this._squareLength / 2;
-			blackBishop.y = _this._squareLength / 2;
-			blackBishop.scaleX = blackBishop.scaleY = _this._squareLength / 45;
-			_this.addChild(blackBishop);
-		};
-	}
+  /**
+   * @param boardCoordinate - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]
+   * @returns {Object} - An object with:
+   *    'id' (the boardCoordinate),
+   *    'x' (the x pixel location of the center of the square),
+   *    'y' (the y pixel location of the center of the square)
+   * @private
+   */
+  function _getPlacementPosition(boardCoordinate) {
+    if (boardCoordinate == null || boardCoordinate.length != 2) {
+      console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
+      return null;
+    } else if (boardCoordinate.match(/[a-hA-H][1-8]/) == null) {
+      console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + "), must be letter & number in a-h & 1-8");
+      return null;
+    }
+
+    var theLetter = boardCoordinate.charAt(0);
+    var theNumber = parseInt(boardCoordinate.charAt(1));
+
+    var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
+
+    var centerOffset = this._squareLength / 2;
+
+    var boardSideLength = this._squareLength * this._gridSize;
+    if (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) {
+      return {
+        id: boardCoordinate,
+        x: this._squareLength * letterPos + centerOffset,
+        y: boardSideLength - this._squareLength * (theNumber - 1) - centerOffset
+      }
+    } else {
+      return {
+        x: boardSideLength - this._squareLength * letterPos - centerOffset,
+        y: this._squareLength * (theNumber - 1) + centerOffset
+      };
+    }
+  }
+  function _updatePieceSize() {
+    for (var i = 0; i < this._activePieces.length; i++) {
+      var piece = this._activePieces[i];
+      piece.updateLocation(_getPlacementPosition.call(this, piece.gridLocation));
+      piece.scaleX = piece.scaleY = this._squareLength / 45;
+    }
+  }
 
 	/**
 	 * Entry point into class. This method will only contain needed class-level checks (ie, isAbstract).
