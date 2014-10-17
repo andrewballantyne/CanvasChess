@@ -64,7 +64,8 @@ var CanvasChess = (function (isAbstract) {
 
   _CanvasChess.prototype.randomMove = function () {
     var moveIndex = Math.floor(Math.random() * this._model.moves().length);
-    this.move(this._model.moves()[moveIndex]);
+    var move = this._model.moves({verbose: true})[moveIndex];
+    this.move({from: move.from, to: move.to});
   };
 
   _CanvasChess.prototype.move = function (move) {
@@ -74,8 +75,9 @@ var CanvasChess = (function (isAbstract) {
 
   _CanvasChess.prototype.getFenString = function () {
     var fen = this._model.fen();
-    if (this._board != null)
+    if (this._board !== null) {
       this._board.useFen(fen);
+    }
     return fen;
   };
 
@@ -83,8 +85,9 @@ var CanvasChess = (function (isAbstract) {
     var validate = this._model.validate_fen(newFen);
     console.log(validate);
     if (validate.valid) {
-      if (this._board != null)
+      if (this._board !== null) {
         this._board.useFen(newFen);
+      }
       return this._model.load(newFen);
     } else {
       return null;
