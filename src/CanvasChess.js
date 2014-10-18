@@ -15,6 +15,8 @@ var CanvasChess = (function (isAbstract) {
   _CanvasChess.PLAYER_BLACK = "b";
   _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
 
+  _CanvasChess.isMobile = (/iPhone|iPod|iPad|Android|BlackBerry|Windows Phone/).test(navigator.userAgent);
+
   /**
    * @constructor
    *
@@ -25,7 +27,7 @@ var CanvasChess = (function (isAbstract) {
     _createCanvas.call(this, containerId);
     _parseOptions.call(this, options);
 
-    _setupResizeListener.call(this);
+    _setupListeners.call(this);
 
     _loadAssets.call(this);
   }
@@ -38,7 +40,7 @@ var CanvasChess = (function (isAbstract) {
   _CanvasChess.prototype.rotate = function () {
     CanvasChess.bottomPlayer = (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) ? CanvasChess.PLAYER_BLACK : CanvasChess.PLAYER_WHITE;
     this._board.updateSideLength(_getLength.call(this));
-  }
+  };
   _CanvasChess.prototype.resetBoard = function () {
   	delete this._moves;
     return this._model.reset();
@@ -122,8 +124,8 @@ var CanvasChess = (function (isAbstract) {
 
   /* ----- Private Methods ----- */
   /**
-   * @param containerId {string} - The id for the container in which to render the CanvasChess into
    * @private
+   * @param containerId {string} - The id for the container in which to render the CanvasChess into
    */
   function _createCanvas(containerId) {
     this._containerTag = document.getElementById(containerId);
@@ -162,15 +164,17 @@ var CanvasChess = (function (isAbstract) {
   }
 
   /**
-   * @param options {Object} - List of options to configure the base operation
    * @private
+   * @param options {Object} - List of options to configure the base operation
    */
   function _parseOptions(options) {
     // Parse the options
   }
 
-  function _setupResizeListener() {
+  function _setupListeners() {
     var _this = this;
+
+    /* Page Resize / Orientation Change */
     window.addEventListener('resize', function (e) {
       setTimeout(function () {
         _calculateSize.call(_this, e);
@@ -178,6 +182,62 @@ var CanvasChess = (function (isAbstract) {
         _this._board.updateSideLength(_getLength.call(_this));
       }, 0);
     });
+
+    /* Touches/Clicks */
+    var isDown = false;
+    var inputDown = function (e) {
+      var loc = _convertToXY(e);
+      isDown = _this._board.inputDown(loc);
+    };
+    var inputMove = function (e) {
+      if (!isDown) return; // we don't care about moves outside of drags
+
+      var loc = _convertToXY(e);
+      if (_this._board.isWithin(loc)) {
+        console.log("Moving around inside the board");
+      }
+
+      if (CanvasChess.isMobile) {
+        // TODO: Only suppress page scrolling when we have an action to do
+        e.preventDefault(); // prevents page scrolling (touch)
+      }
+    };
+    var inputUp = function (e) {
+      isDown = false;
+
+      var loc = _convertToXY(e);
+      if (_this._board.isWithin(loc)) {
+        console.log("Lifting up inside the board");
+      }
+    };
+
+    if (CanvasChess.isMobile) {
+      this._canvasTag.addEventListener('touchstart', inputDown);
+      this._canvasTag.addEventListener('touchmove', inputMove);
+      this._canvasTag.addEventListener('touchend', inputUp);
+    } else {
+      this._canvasTag.addEventListener('mousedown', inputDown);
+      this._canvasTag.addEventListener('mousemove', inputMove);
+      this._canvasTag.addEventListener('mouseup', inputUp);
+    }
+  }
+
+  /**
+   * @private
+   * @param e {Event} - The input event
+   * @returns {createjs.Point} - The point of the input (parsed for mouse and touch)
+   */
+  function _convertToXY(e) {
+    var x, y;
+    if (CanvasChess.isMobile) {
+      x = 0;
+      y = 0;
+    } else {
+      x = e.offsetX;
+      y = e.offsetY;
+    }
+
+    return new createjs.Point(x, y);
   }
 
   function _loadAssets() {
@@ -229,13 +289,13 @@ var CanvasChess = (function (isAbstract) {
   }
 
   /**
-   * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    * @private
+   * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    */
   function _renderFunction(ss) {
     this._board = new ChessBoard(_getLength.call(this), ss);
-    this._board.regX = _getLength.call(this);
-    this._board.x = this._canvasBorderBuffer + _getLength.call(this);
+    this._board.regX = _getLength.call(this) / 2;
+    this._board.x = this._canvasBorderBuffer + _getLength.call(this) / 2;
     this._board.y = this._canvasBorderBuffer;
     this._stage.addChild(this._board);
 

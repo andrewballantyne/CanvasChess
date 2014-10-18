@@ -5,7 +5,7 @@
  * Created by Andrew on 14/10/14.
  *
  * @requires ClassVehicle
- * @extends createjs.Container
+ * @extends BoundingBoxContainer
  */
 var ChessBoard = (function (ParentClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
@@ -35,6 +35,29 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 
   /* ----- Public Methods ----- */
   /**
+   * @override
+   * Check to see if a point is within the ChessBoard.
+   *
+   * @param inputPoint {createjs.Point} - An x/y location of the input
+   * @returns {boolean} - The result of the isWithin function (true if inside, false if not)
+   */
+  _ChessBoard.prototype.isWithin = function (inputPoint) {
+    var xy = _getXY.call(this);
+    return this.$checkRect(inputPoint, xy.x, xy.y, this._fullBoardSideLength, this._fullBoardSideLength);
+  };
+  /**
+   * @override
+   * Check
+   *
+   * @param inputPoint {createjs.Point} - An x/y location of the input
+   * @returns {boolean} - True if we (or any of our children) made contact with something, false if we did nothing with the input
+   */
+  _ChessBoard.prototype.inputDown = function (inputPoint) {
+    if (!ParentClass.prototype.inputDown.call(this, inputPoint)) return false;
+
+    return this._boardGrid.inputDown(this.$convertToLocal(inputPoint));
+  };
+  /**
    * Set the Chess Board to use a Fen string. This will completely replace the current set positions.
    *
    * @param fenString {string} - The new Fen String to override everything with
@@ -55,6 +78,23 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   };
 
   /* ----- Protected Methods ----- */
+  /**
+   * @override
+   * @protected
+   * The local point for the ChessGrid inside it's parent.
+   *
+   * @param inputPoint {createjs.Point} - An x/y location of the input
+   * @returns {createjs.Point} - The location passed in added to a new object
+   */
+  _ChessBoard.prototype.$convertToLocal = function (inputPoint) {
+    var newInputPoint = ParentClass.prototype.$convertToLocal.call(this, inputPoint);
+
+    var xy = _getXY.call(this); // corrects for regX/regY
+    newInputPoint.x -= xy.x;
+    newInputPoint.y -= xy.y;
+
+    return newInputPoint;
+  };
 
   /* ----- Private Variables ----- */
   _ChessBoard.prototype._fullBoardSideLength = 0;
@@ -66,6 +106,12 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   _ChessBoard.prototype._boardGrid = null;
 
   /* ----- Private Methods ----- */
+  function _getXY() {
+    return {
+      x : this.x - this.regX,
+      y : this.y - this.regY
+    }
+  }
   function _getFontSize() {
     return this._gridCellSideLength / 2.5;
   }
@@ -121,8 +167,8 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   }
 
   /**
-   * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    * @private
+   * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    */
   function _renderBoard(ss) {
     this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss);
@@ -150,4 +196,4 @@ var ChessBoard = (function (ParentClass, isAbstract) {
 
   /* Return the class, ready for a new ...() */
   return _ChessBoard;
-})(createjs.Container, false);
+})(BoundingBoxContainer, false);
