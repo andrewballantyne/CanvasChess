@@ -40,10 +40,12 @@ var CanvasChess = (function (isAbstract) {
     this._board.updateSideLength(_getLength.call(this));
   }
   _CanvasChess.prototype.resetBoard = function () {
+  	delete this._moves;
     return this._model.reset();
   };
 
   _CanvasChess.prototype.clearBoard = function () {
+  	delete this._moves;
     return this._model.clear();
   };
 
