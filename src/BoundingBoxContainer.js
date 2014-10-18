@@ -1,5 +1,5 @@
 /**
- * BoundingBoxContainer extends createjs.Container
+ * @abstract BoundingBoxContainer extends createjs.Container
  *  > An "interface" surrounding a createjs.Container that will help expose/implement common 'bounding box' features.
  *
  * Created by Andrew on 18/10/14.

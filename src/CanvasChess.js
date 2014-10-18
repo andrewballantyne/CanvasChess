@@ -293,7 +293,7 @@ var CanvasChess = (function (isAbstract) {
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    */
   function _renderFunction(ss) {
-    this._board = new ChessBoard(_getLength.call(this), ss);
+    this._board = new ChessBoard(_getLength.call(this), ss, this._model);
     this._board.regX = _getLength.call(this) / 2;
     this._board.x = this._canvasBorderBuffer + _getLength.call(this) / 2;
     this._board.y = this._canvasBorderBuffer;

@@ -19,14 +19,15 @@ var ChessBoard = (function (ParentClass, isAbstract) {
    *
    * @param sideLength {number} - All sides of the board have the same length
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
+   * @param model {Chess} - The chess model
    */
-  function ChessBoardConstructor(sideLength, ss) {
+  function ChessBoardConstructor(sideLength, ss, model) {
     ParentClass.call(this); // super call
 
     _calculateLength.call(this, sideLength);
 
     _renderLabels.call(this);
-    _renderBoard.call(this, ss);
+    _renderBoard.call(this, ss, model);
   }
 
   /* ----- Public Variables ----- */
@@ -169,9 +170,10 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   /**
    * @private
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
+   * @param model {Chess} - The chess model
    */
-  function _renderBoard(ss) {
-    this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss);
+  function _renderBoard(ss, model) {
+    this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss, model);
     this._boardGrid.x = this._gridCellSideLength;
     this._boardGrid.y = this._gridCellSideLength;
     this.addChild(this._boardGrid);

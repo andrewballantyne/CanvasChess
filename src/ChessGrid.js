@@ -18,14 +18,18 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @param darkColor {string} - The colour for the 'light squares'
    * @param lightColor {string} - The colour for the 'dark squares'
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
+   * @param model {Chess} - The Chess model
    */
-  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss) {
+  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss, model) {
     ParentClass.call(this); // super call
 
     this._ss = ss;
     this._squareLength = squareSideLength;
     this._darkColor = darkColor;
     this._lightColor = lightColor;
+    this._highlightColor = 'rgba(255, 127, 0, .9)';
+    this._availableMovesColor = 'rgba(51, 255, 51, .4)';
+    this._chessModel = model;
 
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
@@ -44,7 +48,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @returns {boolean} - True if within, false if not
    */
   _ChessGrid.prototype.isWithin = function (inputPoint) {
-    return this.$checkRect(inputPoint, this.x, this.y, this._squareLength * this._gridSize, this._squareLength * this._gridSize);
+    return this.$checkRect(inputPoint, this.x, this.y, this._squareLength * this._GRID_SIZE, this._squareLength * this._GRID_SIZE);
   };
   /**
    * @override
@@ -65,10 +69,34 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       var piece = this._pieceContainer.children[i];
       var squareBox = _gridSquareBoundingBox.call(this, piece.gridLocation);
       if (this.$checkRect(localPoint, squareBox.x, squareBox.y, squareBox.width, squareBox.height)) {
-        console.log("Down on " + piece.type);
+        if (this._selectedPiece != null) {
+          this._selectedPiece.shadow = null;
+          this._selectedPiece = null;
+        }
+
+        // Highlight all possible moves
+        var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
+        this._possibleSelectedMoves = possibleMoves;
+        _highlightMoveSquares.call(this, possibleMoves);
+
+        if (possibleMoves.length > 0) {
+          // Highlight *this* square
+          if (piece.shadow == null)
+            piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
+        } else {
+          // Un-highlight the selected square, no moves for this guy
+          piece.shadow = null;
+        }
+
+        this._selectedPiece = piece;
+
         gotSomething = true;
         break;
       }
+    }
+
+    if (!gotSomething) {
+      _clearSelection.call(this);
     }
 
     return gotSomething;
@@ -142,6 +170,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       this._pieceContainer = new createjs.Container();
       this.addChild(this._pieceContainer);
     } else {
+      _clearSelection.call(this);
       // TODO: Diff the fen
       this._pieceContainer.removeAllChildren();
     }
@@ -190,21 +219,36 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   };
 
   /* ----- Private Variables ----- */
-  /** @type createjs.SpriteSheet **/
-  _ChessGrid.prototype._ss = null;
+  // Constants
+  _ChessGrid.prototype._GRID_SIZE = 8; // 8x8
+
+  // Variables
   _ChessGrid.prototype._squareLength = 0;
-  _ChessGrid.prototype._gridSize = 8; // 8x8
   _ChessGrid.prototype._lightColor = 'white';
   _ChessGrid.prototype._darkColor = 'black';
+  _ChessGrid.prototype._possibleSelectedMoves = null; // null == no selected piece; [] == no moves; [...,'e2','e3',...] all possible moves
 
+  // Object references
+  /** @type createjs.SpriteSheet **/
+  _ChessGrid.prototype._ss = null;
+  /** @type Chess - The Chess Model **/
+  _ChessGrid.prototype._chessModel = null;
+  /** @type ChessPiece **/
+  _ChessGrid.prototype._selectedPiece = null;
+
+  // Board Drawn Shapes
   /** @type createjs.Shape **/
   _ChessGrid.prototype._lightBackdrop = null;
   /** @type createjs.Shape **/
   _ChessGrid.prototype._darkSquares = null;
   /** @type createjs.Container **/
   _ChessGrid.prototype._pieceContainer = null;
+  /** @type createjs.Shape **/
+  _ChessGrid.prototype._selectedSquare = null;
+  /** @type createjs.Shape **/
+  _ChessGrid.prototype._highlightedMoves = null;
 
-  /* ----- Private Methods ----- */
+    /* ----- Private Methods ----- */
   function _drawLightBackdrop() {
     if (this._lightBackdrop == null) {
       this._lightBackdrop = new createjs.Shape();
@@ -215,7 +259,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
     this._lightBackdrop.graphics
       .beginFill(this._lightColor)
-      .drawRect(0, 0, this._squareLength * this._gridSize, this._squareLength * this._gridSize);
+      .drawRect(0, 0, this._squareLength * this._GRID_SIZE, this._squareLength * this._GRID_SIZE);
   }
 
   function _drawDarkSquares() {
@@ -229,8 +273,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     var x = 0;
     var y = 0;
     var drawDark = false;
-    for (var r = 0; r < this._gridSize; r++) {
-      for (var c = 0; c < this._gridSize; c++) {
+    for (var r = 0; r < this._GRID_SIZE; r++) {
+      for (var c = 0; c < this._GRID_SIZE; c++) {
         if (drawDark) {
           this._darkSquares.graphics
             .beginFill(this._darkColor)
@@ -275,24 +319,26 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    *    'height' (the height of the square)
    */
   function _gridSquareBoundingBox(boardCoordinate) {
-    if (boardCoordinate == null || boardCoordinate.length != 2 || boardCoordinate.match(/[a-hA-H][1-8]/) == null) {
+    var matches = boardCoordinate.match(/[a-hA-H][1-8]/);
+    if (matches == null) {
       console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
-      return null;
+    } else {
+      boardCoordinate = matches[0];
     }
 
     var theLetter = boardCoordinate.charAt(0);
     var theNumber = parseInt(boardCoordinate.charAt(1));
 
-    var boardSideLength = this._squareLength * this._gridSize;
+    var boardSideLength = this._squareLength * this._GRID_SIZE;
     var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
     var x = 0;
     var y = 0;
     if (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) {
       x = this._squareLength * letterPos;
-      y = this._squareLength * (this._gridSize - theNumber);
+      y = this._squareLength * (this._GRID_SIZE - theNumber);
     } else {
       x = boardSideLength - this._squareLength * (letterPos + 1);
-      y = boardSideLength - this._squareLength * (this._gridSize - theNumber + 1);
+      y = boardSideLength - this._squareLength * (this._GRID_SIZE - theNumber + 1);
     }
 
     return new createjs.Rectangle(x, y, this._squareLength, this._squareLength);
@@ -303,6 +349,68 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       piece.updateLocation(_getPlacementPosition.call(this, piece.gridLocation));
       piece.scaleX = piece.scaleY = this._squareLength / 45;
     }
+  }
+
+  /**
+   * @private
+   * @param gridLocation {string} - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]; set to null to clear
+   * @param locationRect {createjs.Rectangle?} - Optional. The rectangle for the gridLocation (if not provided it will be fetched within)
+   */
+  function _highlightPiece(gridLocation, locationRect) {
+    if (this._selectedSquare == null) {
+      this._selectedSquare = new createjs.Shape();
+      this.addChildAt(this._selectedSquare, this.getChildIndex(this._darkSquares) + 1);
+    } else {
+      this._selectedSquare.graphics.clear();
+    }
+
+    if (gridLocation === null) return; // we just came to clear the square
+
+    this._selectedSquare.graphics.beginFill(this._highlightColor);
+
+    _highlightSquare.call(this, this._selectedSquare, gridLocation, locationRect);
+  }
+
+  /**
+   * @private
+   * @param highlightShape {createjs.Shape} - The shape object to draw the highlight (define .graphics.beginFill(...) before calling)
+   * @param gridLocation {string} - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]
+   * @param locationRect {createjs.Rectangle?} - Optional. The rectangle for the gridLocation (if not provided it will be fetched within)
+   */
+  function _highlightSquare(highlightShape, gridLocation, locationRect) {
+    if (locationRect === undefined) { // no location? no worries, we'll get it
+      locationRect = _gridSquareBoundingBox.call(this, gridLocation);
+    }
+
+    highlightShape.graphics.drawRect(locationRect.x, locationRect.y, locationRect.width, locationRect.height);
+  }
+
+  /**
+   * @private
+   * @param moves {string[]} - The list of moves to highlight
+   */
+  function _highlightMoveSquares(moves) {
+    if (this._highlightedMoves == null) {
+      this._highlightedMoves = new createjs.Shape();
+      this.addChildAt(this._highlightedMoves, this.getChildIndex(this._darkSquares) + 1);
+    } else {
+      this._highlightedMoves.graphics.clear();
+    }
+
+    if (moves === null) return; // we just came to clear the squares
+
+    this._highlightedMoves.graphics.beginFill(this._availableMovesColor);
+
+    for (var i = 0; i < moves.length; i++) {
+      _highlightSquare.call(this, this._highlightedMoves, moves[i]);
+    }
+  }
+  function _clearSelection() {
+    if (this._selectedPiece != null)
+      this._selectedPiece.shadow = null;
+    this._selectedPiece = null;
+    this._possibleSelectedMoves = null;
+    _highlightMoveSquares.call(this, null);
   }
 
   /**
