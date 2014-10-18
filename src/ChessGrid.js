@@ -69,7 +69,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       var piece = this._pieceContainer.children[i];
       var squareBox = _gridSquareBoundingBox.call(this, piece.gridLocation);
       if (this.$checkRect(localPoint, squareBox.x, squareBox.y, squareBox.width, squareBox.height)) {
-        if (this._selectedPiece != null) {
+        if (this._selectedPiece !== null) {
           this._selectedPiece.shadow = null;
           this._selectedPiece = null;
         }
@@ -81,8 +81,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
         if (possibleMoves.length > 0) {
           // Highlight *this* square
-          if (piece.shadow == null)
+          if (piece.shadow === null) {
             piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
+          }
         } else {
           // Un-highlight the selected square, no moves for this guy
           piece.shadow = null;
@@ -166,7 +167,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
      The number of the full move. It starts at 1, and is incremented after Black's move.
      */
 
-    if (this._pieceContainer == null) {
+    if (this._pieceContainer === null) {
       this._pieceContainer = new createjs.Container();
       this.addChild(this._pieceContainer);
     } else {
@@ -250,7 +251,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
     /* ----- Private Methods ----- */
   function _drawLightBackdrop() {
-    if (this._lightBackdrop == null) {
+    if (this._lightBackdrop === null) {
       this._lightBackdrop = new createjs.Shape();
       this.addChild(this._lightBackdrop);
     } else {
@@ -263,7 +264,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   }
 
   function _drawDarkSquares() {
-    if (this._darkSquares == null) {
+    if (this._darkSquares === null) {
       this._darkSquares = new createjs.Shape();
       this.addChild(this._darkSquares);
     } else {
@@ -299,7 +300,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    */
   function _getPlacementPosition(boardCoordinate) {
     var boundingBox = _gridSquareBoundingBox.call(this, boardCoordinate);
-    if (boundingBox == null) return null;
+    if (boundingBox === null) return null;
 
     var centerOffset = this._squareLength / 2;
     return {
@@ -320,7 +321,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    */
   function _gridSquareBoundingBox(boardCoordinate) {
     var matches = boardCoordinate.match(/[a-hA-H][1-8]/);
-    if (matches == null) {
+    if (matches === null) {
       console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
     } else {
       boardCoordinate = matches[0];
@@ -333,7 +334,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
     var x = 0;
     var y = 0;
-    if (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) {
+    if (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) {
       x = this._squareLength * letterPos;
       y = this._squareLength * (this._GRID_SIZE - theNumber);
     } else {
@@ -357,7 +358,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @param locationRect {createjs.Rectangle?} - Optional. The rectangle for the gridLocation (if not provided it will be fetched within)
    */
   function _highlightPiece(gridLocation, locationRect) {
-    if (this._selectedSquare == null) {
+    if (this._selectedSquare === null) {
       this._selectedSquare = new createjs.Shape();
       this.addChildAt(this._selectedSquare, this.getChildIndex(this._darkSquares) + 1);
     } else {
@@ -390,7 +391,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @param moves {string[]} - The list of moves to highlight
    */
   function _highlightMoveSquares(moves) {
-    if (this._highlightedMoves == null) {
+    if (this._highlightedMoves === null) {
       this._highlightedMoves = new createjs.Shape();
       this.addChildAt(this._highlightedMoves, this.getChildIndex(this._darkSquares) + 1);
     } else {
@@ -406,8 +407,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     }
   }
   function _clearSelection() {
-    if (this._selectedPiece != null)
+    if (this._selectedPiece !== null) {
       this._selectedPiece.shadow = null;
+    }
     this._selectedPiece = null;
     this._possibleSelectedMoves = null;
     _highlightMoveSquares.call(this, null);

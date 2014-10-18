@@ -123,7 +123,7 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   }
 
   function _renderLabels() {
-    if (this._labelContainer == null) {
+    if (this._labelContainer === null) {
       this._labelContainer = new createjs.Container();
       this.addChild(this._labelContainer);
     } else {
@@ -138,8 +138,8 @@ var ChessBoard = (function (ParentClass, isAbstract) {
     // Loop the bisects (intersecting x and y)
     for (var num = 0; num < labelsPerSide; num++) {
       // Determine the letter and number for this bisect
-      var letter = (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) ? letters[num] : letters[letters.length - num - 1];
-      var number = (CanvasChess.bottomPlayer == CanvasChess.PLAYER_WHITE) ? labelsPerSide - num : num + 1;
+      var letter = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? letters[num] : letters[letters.length - num - 1];
+      var number = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? labelsPerSide - num : num + 1;
 
       /* Print Letters */
       var topText = new createjs.Text(letter, font, labelColor);
