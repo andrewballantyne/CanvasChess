@@ -70,7 +70,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     var moveIndex = -1;
     if (this._possibleSelectedMoves !== null) {
       for (i = 0; i < this._possibleSelectedMoves.length; i++) {
-        var possibleMove = this._possibleSelectedMoves[i].match(this._PIECE_REG_EX)[0]; // only 1 location to come out of a SAN notation
+        var matches = this._possibleSelectedMoves[i].match(this._PIECE_REG_EX);
+        var possibleMove = (matches !== null) ? matches[0] : null; // only 1 location to come out of a SAN notation
         if (possibleMove === gridInputLocation) {
           moveIndex = i;
           break;
@@ -88,34 +89,31 @@ var ChessGrid = (function (ParentClass, isAbstract) {
       gotSomething = true;
     } else {
       // Check if we are selecting a piece
-      for (i = 0; i < this._pieceContainer.children.length; i++) {
-        var piece = this._pieceContainer.children[i];
-        if (piece.gridLocation === gridInputLocation) {
-          if (this._selectedPiece !== null) {
-            this._selectedPiece.shadow = null;
-            this._selectedPiece = null;
-          }
-
-          // Highlight all possible moves
-          var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
-          this._possibleSelectedMoves = possibleMoves;
-          _highlightMoveSquares.call(this, possibleMoves);
-
-          if (possibleMoves.length > 0) {
-            // Highlight *this* square
-            if (piece.shadow === null) {
-              piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
-            }
-          } else {
-            // Un-highlight the selected square, no moves for this guy
-            piece.shadow = null;
-          }
-
-          this._selectedPiece = piece;
-
-          gotSomething = true;
-          break;
+      var piece = this._pieceMap[gridInputLocation];
+      if (piece !== null) { // there is a piece at the click location
+        if (this._selectedPiece !== null) {
+          this._selectedPiece.shadow = null;
+          this._selectedPiece = null;
         }
+
+        // Highlight all possible moves
+        var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
+        this._possibleSelectedMoves = possibleMoves;
+        _highlightMoveSquares.call(this, possibleMoves);
+
+        if (possibleMoves.length > 0) {
+          // Highlight *this* square
+          if (piece.shadow === null) {
+            piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
+          }
+        } else {
+          // Un-highlight the selected square, no moves for this guy
+          piece.shadow = null;
+        }
+
+        this._selectedPiece = piece;
+
+        gotSomething = true;
       }
     }
 
