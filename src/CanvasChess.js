@@ -15,6 +15,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.PLAYER_WHITE = "w";
   _CanvasChess.PLAYER_BLACK = "b";
   _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
+  _CanvasChess.currentPlayerTurn = _CanvasChess.PLAYER_WHITE;
 
   _CanvasChess.isMobile = (/iPhone|iPod|iPad|Android|BlackBerry|Windows Phone/).test(navigator.userAgent);
 
@@ -81,6 +82,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
 
   _CanvasChess.prototype.move = function (move) {
+    _flipPlayer.call(this);
     delete this._moves;
     return this._model.move(move);
   };
@@ -114,6 +116,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   /* ----- Private Variables ----- */
   // Model
   _CanvasChess.prototype._model = new Chess();
+
+  // Class Variables
+  _CanvasChess.prototype._players = null;
 
   // DOM
   _CanvasChess.prototype._canvasId = 'canvasChess';
@@ -177,6 +182,16 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    */
   function _parseOptions(options) {
     // Parse the options
+
+    /* Add the players */
+    this._players = {
+      'w' : {
+        'label' : 'White Player\'s Turn'
+      },
+      'b' : {
+        'label' : 'Black Player\'s Turn'
+      }
+    };
   }
 
   function _setupListeners() {
@@ -301,15 +316,31 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    */
   function _renderFunction(ss) {
+    // Create the Board
     var sideLength = _getLength.call(this);
     this._board = new ChessBoard(sideLength, ss, this);
     this._board.regX = sideLength / 2;
     this._board.regY = sideLength / 2;
     this._board.x = this._canvasBorderBuffer + sideLength / 2;
-    this._board.y = this._canvasBorderBuffer + sideLength / 2;
+    this._board.y = (this._canvasBorderBuffer * 2) + sideLength / 2;
     this._stage.addChild(this._board);
 
+    // Set the board to use the current fen
     this._board.useFen(this._model.fen());
+
+    // Create the Player's Turn Banner
+    this._activePlayerBanner = new ActivePlayerBanner(this._players, CanvasChess.currentPlayerTurn);
+    this._activePlayerBanner.x = this._canvasBorderBuffer;
+    this._activePlayerBanner.y = this._canvasBorderBuffer;
+    this._stage.addChild(this._activePlayerBanner);
+  }
+
+  function _flipPlayer() {
+    CanvasChess.currentPlayerTurn =
+      (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ?
+        CanvasChess.PLAYER_BLACK :
+        CanvasChess.PLAYER_WHITE;
+    this._activePlayerBanner.changePlayer(CanvasChess.currentPlayerTurn);
   }
 
   function _getLength() {
