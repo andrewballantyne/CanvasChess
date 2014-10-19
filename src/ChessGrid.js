@@ -59,40 +59,63 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    */
   _ChessGrid.prototype.inputDown = function (inputPoint) {
     if (!ParentClass.prototype.inputDown.call(this, inputPoint)) return false;
+    var i;
 
     // Get local to the grid
     var localPoint = this.$convertToLocal.call(this, inputPoint);
 
-    // Check if we hit any pieces
+    var gridInputLocation = _getBoardCoordinatesFromInput.call(this, localPoint);
+
+    // Check to see if we are moving to another square
+    var moveIndex = -1;
+    if (this._possibleSelectedMoves !== null) {
+      for (i = 0; i < this._possibleSelectedMoves.length; i++) {
+        var possibleMove = this._possibleSelectedMoves[i].match(this._PIECE_REG_EX)[0]; // only 1 location to come out of a SAN notation
+        if (possibleMove === gridInputLocation) {
+          moveIndex = i;
+          break;
+        }
+      }
+    }
+
+    // Determine if we are doing an action
     var gotSomething = false;
-    for (var i = 0; i < this._pieceContainer.children.length; i++) {
-      var piece = this._pieceContainer.children[i];
-      var squareBox = _gridSquareBoundingBox.call(this, piece.gridLocation);
-      if (this.$checkRect(localPoint, squareBox.x, squareBox.y, squareBox.width, squareBox.height)) {
-        if (this._selectedPiece !== null) {
-          this._selectedPiece.shadow = null;
-          this._selectedPiece = null;
-        }
-
-        // Highlight all possible moves
-        var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
-        this._possibleSelectedMoves = possibleMoves;
-        _highlightMoveSquares.call(this, possibleMoves);
-
-        if (possibleMoves.length > 0) {
-          // Highlight *this* square
-          if (piece.shadow === null) {
-            piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
+    if (moveIndex >= 0) {
+      // We are moving a piece
+      var toLoc = this._possibleSelectedMoves[moveIndex];
+      _movePiece.call(this, this._selectedPiece.gridLocation, toLoc);
+      _clearSelection.call(this);
+      gotSomething = true;
+    } else {
+      // Check if we are selecting a piece
+      for (i = 0; i < this._pieceContainer.children.length; i++) {
+        var piece = this._pieceContainer.children[i];
+        if (piece.gridLocation === gridInputLocation) {
+          if (this._selectedPiece !== null) {
+            this._selectedPiece.shadow = null;
+            this._selectedPiece = null;
           }
-        } else {
-          // Un-highlight the selected square, no moves for this guy
-          piece.shadow = null;
+
+          // Highlight all possible moves
+          var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
+          this._possibleSelectedMoves = possibleMoves;
+          _highlightMoveSquares.call(this, possibleMoves);
+
+          if (possibleMoves.length > 0) {
+            // Highlight *this* square
+            if (piece.shadow === null) {
+              piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
+            }
+          } else {
+            // Un-highlight the selected square, no moves for this guy
+            piece.shadow = null;
+          }
+
+          this._selectedPiece = piece;
+
+          gotSomething = true;
+          break;
         }
-
-        this._selectedPiece = piece;
-
-        gotSomething = true;
-        break;
       }
     }
 
@@ -194,8 +217,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
           var piece = null;
           piece = new ChessPiece(this._ss, thisPiece, _getPlacementPosition.call(this, loc));
-          piece.scaleX = piece.scaleY = this._squareLength / 45;
+          piece.scaleX = piece.scaleY = this._squareLength / this._PIECE_SCALE;
           this._pieceContainer.addChild(piece);
+          _addPiece.call(this, loc, piece);
         }
       }
     }
@@ -221,7 +245,9 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
   /* ----- Private Variables ----- */
   // Constants
-  _ChessGrid.prototype._GRID_SIZE = 8; // 8x8
+  _ChessGrid.prototype._GRID_SIZE = 8; // 8x8 grid
+  _ChessGrid.prototype._PIECE_SCALE = 45; // square / *this* -- roughly equals a decent sized scale within the square
+  _ChessGrid.prototype._PIECE_REG_EX = /[a-hA-H][1-8]/;
 
   // Variables
   _ChessGrid.prototype._squareLength = 0;
@@ -236,6 +262,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   _ChessGrid.prototype._chessModel = null;
   /** @type ChessPiece **/
   _ChessGrid.prototype._selectedPiece = null;
+  /** @type Object (key[location]:string to value[piece]:createjs.Sprite) **/
+  _ChessGrid.prototype._pieceMap = {};
 
   // Board Drawn Shapes
   /** @type createjs.Shape **/
@@ -290,6 +318,29 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     }
   }
 
+  function _getBoardCoordinatesFromInput(inputPoint) {
+    var letterIndex = 0;
+    var x = inputPoint.x;
+    do {
+      x -= this._squareLength;
+      letterIndex++;
+    } while(x > 0);
+    var letter =
+      (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ?
+        ChessBoard.letters[--letterIndex] :
+        ChessBoard.letters[this._GRID_SIZE - letterIndex];
+
+    var number = 0;
+    var y = inputPoint.y;
+    do {
+      y -= this._squareLength;
+      number++;
+    } while(y > 0);
+    number = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? (this._GRID_SIZE - number + 1) : number;
+
+    return letter + number.toString();
+  }
+
   /**
    * @private
    * @param boardCoordinate {string} - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]
@@ -304,7 +355,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
 
     var centerOffset = this._squareLength / 2;
     return {
-      id: boardCoordinate,
+      id: boardCoordinate.match(this._PIECE_REG_EX)[0],
       x: boundingBox.x + centerOffset,
       y: boundingBox.y + centerOffset
     }
@@ -320,7 +371,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    *    'height' (the height of the square)
    */
   function _gridSquareBoundingBox(boardCoordinate) {
-    var matches = boardCoordinate.match(/[a-hA-H][1-8]/);
+    var matches = boardCoordinate.match(this._PIECE_REG_EX);
     if (matches === null) {
       console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
     } else {
@@ -348,7 +399,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     for (var i = 0; i < this._pieceContainer.children.length; i++) {
       var piece = this._pieceContainer.children[i];
       piece.updateLocation(_getPlacementPosition.call(this, piece.gridLocation));
-      piece.scaleX = piece.scaleY = this._squareLength / 45;
+      piece.scaleX = piece.scaleY = this._squareLength / this._PIECE_SCALE;
     }
   }
 
@@ -413,6 +464,59 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     this._selectedPiece = null;
     this._possibleSelectedMoves = null;
     _highlightMoveSquares.call(this, null);
+  }
+
+
+  /**
+   * @private
+   * @param from {string} - The SAN location for where the piece is moving from
+   * @param to {string} - The SAN location for where the piece is to go to
+   */
+  function _movePiece(from, to) {
+    var fromLoc = from.match(this._PIECE_REG_EX)[0];
+    var toLoc = to.match(this._PIECE_REG_EX)[0];
+
+    var fromObj = this._pieceMap[fromLoc];
+    if (fromObj === undefined) return; // no piece at this location
+
+    fromObj.updateLocation(_getPlacementPosition.call(this, to));
+    var flag = this._chessModel.move(to).flags;
+    /* Flags:
+     'n' - a non-capture
+     'b' - a pawn push of two squares
+     'e' - an en passant capture
+     'c' - a standard capture
+     'p' - a promotion
+     'k' - kingside castling
+     'q' - queenside castling
+     */
+    var removeLoc = toLoc;
+    if (flag === 'e') {
+      // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
+      var horizontalRow = parseInt(removeLoc.charAt(1));
+      if (horizontalRow == 6) {
+        horizontalRow--; // 'top-down'
+      } else if (horizontalRow == 3) {
+        horizontalRow++; // 'bottom-up'
+      }
+      removeLoc = removeLoc.charAt(0) + horizontalRow;
+    }
+    _removePiece.call(this, removeLoc);
+
+    this._pieceMap[toLoc] = this._pieceMap[fromLoc];
+    delete this._pieceMap[fromLoc];
+  }
+  function _addPiece(on, piece) {
+    var onLoc = on.match(this._PIECE_REG_EX)[0];
+    this._pieceMap[onLoc] = piece;
+  }
+  function _removePiece(on) {
+    var onLoc = on.match(this._PIECE_REG_EX)[0];
+    var piece = this._pieceMap[onLoc];
+    if (piece !== undefined) {
+      this._pieceContainer.removeChild(piece);
+      delete this._pieceMap[onLoc];
+    }
   }
 
   /**

@@ -41,6 +41,7 @@ var ChessPiece = (function (ParentClass, isAbstract) {
    * @param newBoardLocation {{id: string, x: number, y: number}} - The location identification object
    */
   _ChessPiece.prototype.updateLocation = function (newBoardLocation) {
+    this.gridLocation = newBoardLocation.id;
     this.x = newBoardLocation.x;
     this.y = newBoardLocation.y;
   };

@@ -197,7 +197,7 @@ var CanvasChess = (function (isAbstract) {
 
       var loc = _convertToXY(e);
       if (_this._board.isWithin(loc)) {
-        console.log("Moving around inside the board");
+//        console.log("Moving around inside the board");
       }
 
       if (CanvasChess.isMobile) {
@@ -210,7 +210,7 @@ var CanvasChess = (function (isAbstract) {
 
       var loc = _convertToXY(e);
       if (_this._board.isWithin(loc)) {
-        console.log("Lifting up inside the board");
+//        console.log("Lifting up inside the board");
       }
     };
 
