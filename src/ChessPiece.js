@@ -7,9 +7,9 @@
  * @requires ClassVehicle
  * @extends createjs.Sprite
  */
-var ChessPiece = (function (ParentClass, isAbstract) {
+var ChessPiece = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
-  ClassVehicle.setupClassExtend(_ChessPiece, ParentClass, isAbstract);
+  ClassVehicle.setupClassExtend(_ChessPiece, SuperClass, isAbstract);
 
   /**
    * @constructor
@@ -19,7 +19,7 @@ var ChessPiece = (function (ParentClass, isAbstract) {
    * @param location {{id: string, x: number, y: number}} - The location identification object
    */
   function ChessPieceConstructor(ss, piece, location) {
-    ParentClass.call(this, ss, piece); // super call
+    SuperClass.call(this, ss, piece); // super call
 
     this.type = piece;
     this.x = location.x;

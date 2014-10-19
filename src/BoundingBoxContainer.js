@@ -7,16 +7,16 @@
  * @requires ClassVehicle
  * @extends createjs.Container
  */
-var BoundingBoxContainer = (function (ParentClass, isAbstract) {
+var BoundingBoxContainer = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
-  ClassVehicle.setupClassExtend(_BoundingBoxContainer, ParentClass, isAbstract);
+  ClassVehicle.setupClassExtend(_BoundingBoxContainer, SuperClass, isAbstract);
 
   /**
    * @constructor
    *
    */
   function BoundingBoxContainerConstructor() {
-    ParentClass.call(this); // super call
+    SuperClass.call(this); // super call
   }
 
   /* ----- Public Variables ----- */

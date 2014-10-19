@@ -7,9 +7,9 @@
  * @requires ClassVehicle
  * @extends BoundingBoxContainer
  */
-var ChessBoard = (function (ParentClass, isAbstract) {
+var ChessBoard = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
-  ClassVehicle.setupClassExtend(_ChessBoard, ParentClass, isAbstract);
+  ClassVehicle.setupClassExtend(_ChessBoard, SuperClass, isAbstract);
 
   /* ----- Static Variables ----- */
   _ChessBoard.letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -19,15 +19,15 @@ var ChessBoard = (function (ParentClass, isAbstract) {
    *
    * @param sideLength {number} - All sides of the board have the same length
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
-   * @param model {Chess} - The chess model
+   * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
-  function ChessBoardConstructor(sideLength, ss, model) {
-    ParentClass.call(this); // super call
+  function ChessBoardConstructor(sideLength, ss, chessListener) {
+    SuperClass.call(this); // super call
 
     _calculateLength.call(this, sideLength);
 
     _renderLabels.call(this);
-    _renderBoard.call(this, ss, model);
+    _renderBoard.call(this, ss, chessListener);
   }
 
   /* ----- Public Variables ----- */
@@ -54,7 +54,7 @@ var ChessBoard = (function (ParentClass, isAbstract) {
    * @returns {boolean} - True if we (or any of our children) made contact with something, false if we did nothing with the input
    */
   _ChessBoard.prototype.inputDown = function (inputPoint) {
-    if (!ParentClass.prototype.inputDown.call(this, inputPoint)) return false;
+    if (!SuperClass.prototype.inputDown.call(this, inputPoint)) return false;
 
     return this._boardGrid.inputDown(this.$convertToLocal(inputPoint));
   };
@@ -88,7 +88,7 @@ var ChessBoard = (function (ParentClass, isAbstract) {
    * @returns {createjs.Point} - The location passed in added to a new object
    */
   _ChessBoard.prototype.$convertToLocal = function (inputPoint) {
-    var newInputPoint = ParentClass.prototype.$convertToLocal.call(this, inputPoint);
+    var newInputPoint = SuperClass.prototype.$convertToLocal.call(this, inputPoint);
 
     var xy = _getXY.call(this); // corrects for regX/regY
     newInputPoint.x -= xy.x;
@@ -170,10 +170,10 @@ var ChessBoard = (function (ParentClass, isAbstract) {
   /**
    * @private
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
-   * @param model {Chess} - The chess model
+   * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
-  function _renderBoard(ss, model) {
-    this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss, model);
+  function _renderBoard(ss, chessListener) {
+    this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss, chessListener);
     this._boardGrid.x = this._gridCellSideLength;
     this._boardGrid.y = this._gridCellSideLength;
     this.addChild(this._boardGrid);

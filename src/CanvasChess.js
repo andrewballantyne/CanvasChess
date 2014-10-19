@@ -5,10 +5,11 @@
  * Created by Andrew on 14/10/14.
  *
  * @requires ClassVehicle
+ * @extends ChessListener
  */
-var CanvasChess = (function (isAbstract) {
-  /* Setup Class Defaults */
-  ClassVehicle.setupClass(_CanvasChess, isAbstract);
+var CanvasChess = (function (SuperClass, isAbstract) {
+  /* Setup Extend Link and Setup Class Defaults */
+  ClassVehicle.setupClassExtend(_CanvasChess, SuperClass, isAbstract);
 
   /* ----- Static Variables ----- */
   _CanvasChess.PLAYER_WHITE = "w";
@@ -82,6 +83,10 @@ var CanvasChess = (function (isAbstract) {
   _CanvasChess.prototype.move = function (move) {
     delete this._moves;
     return this._model.move(move);
+  };
+
+  _CanvasChess.prototype.getMoves = function (gridCoordinate) {
+    return this._model.moves({square: gridCoordinate});
   };
 
   _CanvasChess.prototype.getFenString = function () {
@@ -297,7 +302,7 @@ var CanvasChess = (function (isAbstract) {
    */
   function _renderFunction(ss) {
     var sideLength = _getLength.call(this);
-    this._board = new ChessBoard(sideLength, ss, this._model);
+    this._board = new ChessBoard(sideLength, ss, this);
     this._board.regX = sideLength / 2;
     this._board.regY = sideLength / 2;
     this._board.x = this._canvasBorderBuffer + sideLength / 2;
@@ -324,4 +329,4 @@ var CanvasChess = (function (isAbstract) {
 
   /* Return the class, ready for a new ...() */
   return _CanvasChess;
-})(false);
+})(ChessListener, false);

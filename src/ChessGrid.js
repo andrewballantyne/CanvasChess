@@ -7,9 +7,9 @@
  * @requires ClassVehicle
  * @extends BoundingBoxContainer
  */
-var ChessGrid = (function (ParentClass, isAbstract) {
+var ChessGrid = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
-  ClassVehicle.setupClassExtend(_ChessGrid, ParentClass, isAbstract);
+  ClassVehicle.setupClassExtend(_ChessGrid, SuperClass, isAbstract);
 
   /**
    * @constructor
@@ -18,10 +18,10 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @param darkColor {string} - The colour for the 'light squares'
    * @param lightColor {string} - The colour for the 'dark squares'
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
-   * @param model {Chess} - The Chess model
+   * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
-  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss, model) {
-    ParentClass.call(this); // super call
+  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss, chessListener) {
+    SuperClass.call(this); // super call
 
     this._ss = ss;
     this._squareLength = squareSideLength;
@@ -29,7 +29,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     this._lightColor = lightColor;
     this._highlightColor = 'rgba(255, 127, 0, .9)';
     this._availableMovesColor = 'rgba(51, 255, 51, .4)';
-    this._chessModel = model;
+    this._chessListener = chessListener;
 
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
@@ -58,7 +58,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @returns {boolean} - True if we made contact with something, false if we did nothing with the point
    */
   _ChessGrid.prototype.inputDown = function (inputPoint) {
-    if (!ParentClass.prototype.inputDown.call(this, inputPoint)) return false;
+    if (!SuperClass.prototype.inputDown.call(this, inputPoint)) return false;
     var i;
 
     // Get local to the grid
@@ -90,14 +90,14 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     } else {
       // Check if we are selecting a piece
       var piece = this._pieceMap[gridInputLocation];
-      if (piece !== null) { // there is a piece at the click location
+      if (piece !== null && piece !== undefined) { // there is a piece at the click location
         if (this._selectedPiece !== null) {
           this._selectedPiece.shadow = null;
           this._selectedPiece = null;
         }
 
         // Highlight all possible moves
-        var possibleMoves = this._chessModel.moves({square: piece.gridLocation});
+        var possibleMoves = this._chessListener.getMoves(piece.gridLocation);
         this._possibleSelectedMoves = possibleMoves;
         _highlightMoveSquares.call(this, possibleMoves);
 
@@ -233,7 +233,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
    * @returns {createjs.Point} - The location passed in added to a new object
    */
   _ChessGrid.prototype.$convertToLocal = function (inputPoint) {
-    var newInputPoint = ParentClass.prototype.$convertToLocal.call(this, inputPoint);
+    var newInputPoint = SuperClass.prototype.$convertToLocal.call(this, inputPoint);
 
     newInputPoint.x -= this.x;
     newInputPoint.y -= this.y;
@@ -256,8 +256,8 @@ var ChessGrid = (function (ParentClass, isAbstract) {
   // Object references
   /** @type createjs.SpriteSheet **/
   _ChessGrid.prototype._ss = null;
-  /** @type Chess - The Chess Model **/
-  _ChessGrid.prototype._chessModel = null;
+  /** @type ChessListener **/
+  _ChessGrid.prototype._chessListener = null;
   /** @type ChessPiece **/
   _ChessGrid.prototype._selectedPiece = null;
   /** @type Object (key[location]:string to value[piece]:createjs.Sprite) **/
@@ -478,7 +478,7 @@ var ChessGrid = (function (ParentClass, isAbstract) {
     if (fromObj === undefined) return; // no piece at this location
 
     fromObj.updateLocation(_getPlacementPosition.call(this, to));
-    var flag = this._chessModel.move(to).flags;
+    var flag = this._chessListener.move(to).flags;
     /* Flags:
      'n' - a non-capture
      'b' - a pawn push of two squares
