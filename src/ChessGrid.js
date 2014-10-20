@@ -316,6 +316,11 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     }
   }
 
+  /**
+   * @private
+   * @param inputPoint {createjs.Point} - The input location
+   * @returns {string} - The grid coordinate
+   */
   function _getBoardCoordinatesFromInput(inputPoint) {
     var letterIndex = 0;
     var x = inputPoint.x;
@@ -464,7 +469,6 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     _highlightMoveSquares.call(this, null);
   }
 
-
   /**
    * @private
    * @param from {string} - The SAN location for where the piece is moving from
@@ -478,7 +482,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     if (fromObj === undefined) return; // no piece at this location
 
     fromObj.updateLocation(_getPlacementPosition.call(this, to));
-    var flag = this._chessListener.move(to).flags;
+    var flag = this._chessListener.move({from: fromLoc, to: toLoc}).flags;
     /* Flags:
      'n' - a non-capture
      'b' - a pawn push of two squares
@@ -504,10 +508,22 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     this._pieceMap[toLoc] = this._pieceMap[fromLoc];
     delete this._pieceMap[fromLoc];
   }
+
+  /**
+   * @private
+   * @param on {string} - The grid coordinate of where to place the piece
+   * @param piece {ChessPiece} - The piece to be placed
+   */
   function _addPiece(on, piece) {
     var onLoc = on.match(this._PIECE_REG_EX)[0];
     this._pieceMap[onLoc] = piece;
+    this._pieceContainer.addChild(piece);
   }
+
+  /**
+   * @private
+   * @param on {string} - The grid coordinate of where to place the piece
+   */
   function _removePiece(on) {
     var onLoc = on.match(this._PIECE_REG_EX)[0];
     var piece = this._pieceMap[onLoc];

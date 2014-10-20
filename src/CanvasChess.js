@@ -119,6 +119,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
   // Class Variables
   _CanvasChess.prototype._players = null;
+  _CanvasChess.prototype._savedClientHeight = 0;
 
   // DOM
   _CanvasChess.prototype._canvasId = 'canvasChess';
@@ -161,6 +162,12 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   }
 
   function _calculateSize() {
+    if (this._savedClientHeight === document.documentElement.clientHeight) {
+      // Let's not update if we are still dealing with the same viewport height (mobile scrolling will introduce new interesting things)
+      return;
+    }
+    this._savedClientHeight = document.documentElement.clientHeight;
+
     var width = this._containerTag.offsetWidth;
     var height;
     if (this._containerHasFixedHeight) {
@@ -170,7 +177,8 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       // No Fixed height, a common DOM situation, as the container does not have a set height and will expand as content fills it.
       // Since we need a height, let's do some quick calculations based on the window size and the location of the container from
       // the top
-      height = window.innerHeight - (this._containerTag.getBoundingClientRect().top * 2); // *2: for the top offset + a bottom buffer
+      height = this._savedClientHeight - (this._containerTag.getBoundingClientRect().top * 2);
+      // (above) * 2: one for the top offset + one as a bottom buffer
     }
     this._canvasTag.width = width;
     this._canvasTag.height = height;
@@ -203,6 +211,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
         _calculateSize.call(_this, e);
 
         _this._board.updateSideLength(_getLength.call(_this));
+        _this._activePlayerBanner.updateForNewCanvasSize(_getLength.call(_this));
       }, 0);
     });
 
@@ -329,7 +338,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._board.useFen(this._model.fen());
 
     // Create the Player's Turn Banner
-    this._activePlayerBanner = new ActivePlayerBanner(this._players, CanvasChess.currentPlayerTurn);
+    this._activePlayerBanner = new ActivePlayerBanner(sideLength, this._players, CanvasChess.currentPlayerTurn);
     this._activePlayerBanner.x = this._canvasBorderBuffer;
     this._activePlayerBanner.y = this._canvasBorderBuffer;
     this._stage.addChild(this._activePlayerBanner);
