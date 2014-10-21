@@ -196,10 +196,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     /* Add the players */
     this._players = {
       'w' : {
-        'label' : 'White Player\'s Turn'
+        'label' : 'White\'s Turn'
       },
       'b' : {
-        'label' : 'Black Player\'s Turn'
+        'label' : 'Black\'s Turn'
       }
     };
   }
