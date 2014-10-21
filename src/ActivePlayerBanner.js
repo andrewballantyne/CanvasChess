@@ -7,9 +7,9 @@
  * @requires ClassVehicle
  * @extends createjs.Container
  */
-var ActivePlayerBanner = (function (ParentClass, isAbstract) {
+var ActivePlayerBanner = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
-  ClassVehicle.setupClassExtend(_ActivePlayerBanner, ParentClass, isAbstract);
+  ClassVehicle.setupClassExtend(_ActivePlayerBanner, SuperClass, isAbstract);
 
   /**
    * @constructor
@@ -19,7 +19,7 @@ var ActivePlayerBanner = (function (ParentClass, isAbstract) {
    * @param startingPlayerId {string} - The id of the player to set at creation
    */
   function ActivePlayerBannerConstructor(canvasSize, players, startingPlayerId) {
-    ParentClass.call(this); // super call
+    SuperClass.call(this); // super call
 
     this._players = players;
     this._currentPlayer = players[startingPlayerId];
