@@ -180,8 +180,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       height = this._savedClientHeight - (this._containerTag.getBoundingClientRect().top * 2);
       // (above) * 2: one for the top offset + one as a bottom buffer
     }
-    this._canvasTag.width = width;
-    this._canvasTag.height = height;
+    this._canvasTag.width = width * window.devicePixelRatio;
+    this._canvasTag.height = height * window.devicePixelRatio;
+    this._canvasTag.style.width = width + 'px';
+    this._canvasTag.style.height = height + 'px';
   }
 
   /**
@@ -218,13 +220,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     /* Touches/Clicks */
     var isDown = false;
     var inputDown = function (e) {
-      var loc = _convertToXY(e);
+      var loc = _convertToXY.call(_this, e);
       isDown = _this._board.inputDown(loc);
     };
     var inputMove = function (e) {
       if (!isDown) return; // we don't care about moves outside of drags
 
-      var loc = _convertToXY(e);
+      var loc = _convertToXY.call(_this, e);
       if (_this._board.isWithin(loc)) {
 //        console.log("Moving around inside the board");
       }
@@ -237,7 +239,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     var inputUp = function (e) {
       isDown = false;
 
-      var loc = _convertToXY(e);
+      var loc = _convertToXY.call(_this, e);
       if (_this._board.isWithin(loc)) {
 //        console.log("Lifting up inside the board");
       }
@@ -262,12 +264,21 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   function _convertToXY(e) {
     var x, y;
     if (CanvasChess.isMobile) {
-      x = 0;
-      y = 0;
+      x = e.touches[0].clientX;
+      y = e.touches[0].clientY;
+
+      // Adjust to a local touch x/y
+      var offsetRect = this._containerTag.getBoundingClientRect();
+      x -= offsetRect.left;
+      y -= offsetRect.top;
     } else {
       x = e.offsetX;
       y = e.offsetY;
     }
+
+    // Adjust for the device pixel ratio
+    x *= window.devicePixelRatio;
+    y *= window.devicePixelRatio;
 
     return new createjs.Point(x, y);
   }
