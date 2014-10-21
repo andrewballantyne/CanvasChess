@@ -18,6 +18,10 @@ var ChessListener = (function (isAbstract) {
   }
 
   /* ----- Public Variables ----- */
+
+  /* ----- Protected Variables ----- */
+
+  /* ----- Public Methods ----- */
   _ChessListener.prototype.rotate = function () {
     throw new Error("rotate is an abstract method and cannot be called directly.");
   };
@@ -49,13 +53,39 @@ var ChessListener = (function (isAbstract) {
     throw new Error("setFenString is an abstract method and cannot be called directly.");
   };
 
-  /* ----- Protected Variables ----- */
-
-  /* ----- Public Methods ----- */
-
   /* ----- Protected Methods ----- */
+  /**
+   * Trigger an event that has been registered.
+   *
+   * @param eventName {string} - The Event to trigger (will trigger all callbacks registered with this event)
+   * @param args {*[]} - The args to pass to the callback function
+   */
+  _ChessListener.prototype.$triggerEvent = function (eventName, args) {
+    if (this._eventListenerMap[eventName] !== undefined) {
+      for (var i = 0; i < this._eventListenerMap[eventName].length; i++) {
+        var thisEvent = this._eventListenerMap[eventName][i];
+        if (thisEvent !== null || thisEvent !== undefined) {
+          thisEvent.apply(window, args);
+        }
+      }
+    }
+  };
+
+  /**
+   * Registers a callback event.
+   *
+   * @param eventName {string} - The Event to bind the callback to (when $triggerEvent is called, all events bound will be called)
+   * @param callback {Function} - The method to call on trigger
+   */
+  _ChessListener.prototype.$registerCallbackEvent = function (eventName, callback) {
+    if (this._eventListenerMap[eventName] === undefined) {
+      this._eventListenerMap[eventName] = [];
+    }
+    this._eventListenerMap[eventName].push(callback);
+  };
 
   /* ----- Private Variables ----- */
+  _ChessListener.prototype._eventListenerMap = {};
 
   /* ----- Private Methods ----- */
 

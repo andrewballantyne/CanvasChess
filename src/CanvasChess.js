@@ -17,6 +17,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
   _CanvasChess.currentPlayerTurn = _CanvasChess.PLAYER_WHITE;
 
+  _CanvasChess.colorScheme = {
+    darkSquareColor: 'black',
+    lightSquareColor: 'white',
+    pieceHighlightColor: 'rgba(255, 127, 0, .9)',
+    availableMoveSquareColor: 'rgba(51, 255, 51, .4)'
+  };
+
   _CanvasChess.isMobile = (/iPhone|iPod|iPad|Android|BlackBerry|Windows Phone/).test(navigator.userAgent);
 
   /**
@@ -82,6 +89,8 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
 
   _CanvasChess.prototype.move = function (move) {
+    this.$triggerEvent('onPlayerMove', [{playerColor: CanvasChess.currentPlayerTurn, move: move.to}]);
+
     _flipPlayer.call(this);
     delete this._moves;
     return this._model.move(move);
@@ -117,8 +126,19 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   // Model
   _CanvasChess.prototype._model = new Chess();
 
+  // Options
+  _CanvasChess.prototype._demoMode = false;
+  _CanvasChess.prototype._pieceURL = null;
+
   // Class Variables
-  _CanvasChess.prototype._players = null;
+  _CanvasChess.prototype._players = {
+    'w' : {
+      'label' : 'White\'s Turn'
+    },
+    'b' : {
+      'label' : 'Black\'s Turn'
+    }
+  };
   _CanvasChess.prototype._savedClientHeight = 0;
 
   // DOM
@@ -191,17 +211,52 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    * @param options {Object} - List of options to configure the base operation
    */
   function _parseOptions(options) {
-    // Parse the options
+    /* Demo Mode Option */
+    if (typeof options.demoMode === 'boolean') {
+      this._demoMode = options.demoMode;
+    }
 
-    /* Add the players */
-    this._players = {
-      'w' : {
-        'label' : 'White\'s Turn'
-      },
-      'b' : {
-        'label' : 'Black\'s Turn'
+    /* Theme Options */
+    if (typeof options.theme === 'object') {
+      if (typeof options.theme.piecesUrl === 'string') {
+        this._pieceURL = options.theme.piecesUrl;
       }
-    };
+      if (typeof options.theme.lightSquareColor === 'string') {
+        CanvasChess.colorScheme.lightSquareColor = options.theme.lightSquareColor;
+      }
+      if (typeof options.theme.darkSquareColor === 'string') {
+        CanvasChess.colorScheme.darkSquareColor = options.theme.darkSquareColor;
+      }
+      if (typeof options.theme.pieceHighlightColor === 'string') {
+        CanvasChess.colorScheme.pieceHighlightColor = options.theme.pieceHighlightColor;
+      }
+      if (typeof options.theme.availableMovesColor === 'string') {
+        CanvasChess.colorScheme.availableMoveSquareColor = options.theme.availableMovesColor;
+      }
+    }
+
+    /* Game Options */
+    if (typeof options.toPlay === 'string') {
+      CanvasChess.currentPlayerTurn =
+        (options.toPlay === 'white' || options.toPlay === 'w') ?
+          CanvasChess.PLAYER_WHITE :
+          CanvasChess.PLAYER_BLACK;
+    }
+    if (typeof options.position === 'string') {
+      this.setFenString(options.position);
+    }
+
+    /* Players Options */
+    // TODO: Support player.name?
+
+    /* Events */
+    if (typeof options.events === 'object') {
+      for (var eventName in options.events) {
+        if (!options.events.hasOwnProperty(eventName)) continue;
+
+        this.$registerCallbackEvent(eventName, options.events[eventName]);
+      }
+    }
   }
 
   function _setupListeners() {
@@ -287,7 +342,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     var _this = this;
 
     var pieces = new Image();
-    pieces.src = 'assets/sprites/pieces/Chess_Pieces_Sprite.svg';
+    pieces.src = this._pieceURL;
     pieces.onload = function () {
       var data = {
         images: [this],
@@ -353,6 +408,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._activePlayerBanner.x = this._canvasBorderBuffer;
     this._activePlayerBanner.y = this._canvasBorderBuffer;
     this._stage.addChild(this._activePlayerBanner);
+
+    // Start Game
+    this.$triggerEvent('onGameStart', []);
   }
 
   function _flipPlayer() {

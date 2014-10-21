@@ -173,7 +173,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
    * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
   function _renderBoard(ss, chessListener) {
-    this._boardGrid = new ChessGrid(this._gridCellSideLength, '#55f', '#ccf', ss, chessListener);
+    this._boardGrid = new ChessGrid(this._gridCellSideLength, ss, chessListener);
     this._boardGrid.x = this._gridCellSideLength;
     this._boardGrid.y = this._gridCellSideLength;
     this.addChild(this._boardGrid);

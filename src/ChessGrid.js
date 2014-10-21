@@ -15,20 +15,18 @@ var ChessGrid = (function (SuperClass, isAbstract) {
    * @constructor
    *
    * @param squareSideLength {number} - The length of a side for a single square
-   * @param darkColor {string} - The colour for the 'light squares'
-   * @param lightColor {string} - The colour for the 'dark squares'
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
-  function ChessGridConstructor(squareSideLength, darkColor, lightColor, ss, chessListener) {
+  function ChessGridConstructor(squareSideLength, ss, chessListener) {
     SuperClass.call(this); // super call
 
     this._ss = ss;
     this._squareLength = squareSideLength;
-    this._darkColor = darkColor;
-    this._lightColor = lightColor;
-    this._highlightColor = 'rgba(255, 127, 0, .9)';
-    this._availableMovesColor = 'rgba(51, 255, 51, .4)';
+    this._lightColor = CanvasChess.colorScheme.lightSquareColor;
+    this._darkColor = CanvasChess.colorScheme.darkSquareColor;
+    this._highlightColor = CanvasChess.colorScheme.pieceHighlightColor;
+    this._availableMovesColor = CanvasChess.colorScheme.availableMoveSquareColor;
     this._chessListener = chessListener;
 
     _drawLightBackdrop.call(this);
