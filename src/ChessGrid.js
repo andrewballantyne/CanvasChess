@@ -65,24 +65,52 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     var gridInputLocation = _getBoardCoordinatesFromInput.call(this, localPoint);
 
     // Check to see if we are moving to another square
-    var moveIndex = -1;
+    var theMove = null;
+    var isCastle = false;
     if (this._possibleSelectedMoves !== null) {
       for (i = 0; i < this._possibleSelectedMoves.length; i++) {
-        var matches = this._possibleSelectedMoves[i].match(this._PIECE_REG_EX);
-        var possibleMove = (matches !== null) ? matches[0] : null; // only 1 location to come out of a SAN notation
-        if (possibleMove === gridInputLocation) {
-          moveIndex = i;
-          break;
+        var possibleMove = null;
+        var thisMove = this._possibleSelectedMoves[i];
+
+        // Check if it's a castling move
+        var isKingCastle = this._CASTLE_KS_REG_EX.test(thisMove);
+        var isQueenCastle = this._CASTLE_QS_REG_EX.test(thisMove);
+        if (isKingCastle || isQueenCastle) {
+          // This move is a castling move, check if it matches the square clicked
+          var theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
+          var theLetter = (isQueenCastle) ? 'c' : 'g';
+          possibleMove = theLetter + theNumber.toString();
+          if (possibleMove === gridInputLocation) {
+            // This is the square we clicked, we are castling
+            theMove = theLetter + theNumber.toString();
+            isCastle = true;
+            break;
+          }
+        } else {
+          // Not castling, check to see if thisMove is the grid location we clicked
+          var matches = thisMove.match(this._PIECE_REG_EX);
+          possibleMove = (matches !== null) ? matches[0] : null; // only 1 location to come out of a SAN notation
+          if (possibleMove === gridInputLocation) {
+            theMove = thisMove;
+            break;
+          }
         }
       }
     }
 
     // Determine if we are doing an action
     var gotSomething = false;
-    if (moveIndex >= 0) {
+    if (theMove !== null) {
       // We are moving a piece
-      var toLoc = this._possibleSelectedMoves[moveIndex];
-      _movePiece.call(this, this._selectedPiece.gridLocation, toLoc);
+      _movePiece.call(this, this._selectedPiece.gridLocation, theMove);
+      if (isCastle) {
+        // We are castling, make sure we move the rook as well
+        if (theMove.charAt(0) === 'c') { // Queen Castle
+          _movePiece.call(this, 'a' + theMove.charAt(1), 'd' + theMove.charAt(1), true);
+        } else { // King Castle
+          _movePiece.call(this, 'h' + theMove.charAt(1), 'f' + theMove.charAt(1), true);
+        }
+      }
       _clearSelection.call(this);
       gotSomething = true;
     } else {
@@ -244,6 +272,8 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   _ChessGrid.prototype._GRID_SIZE = 8; // 8x8 grid
   _ChessGrid.prototype._PIECE_SCALE = 45; // square / *this* -- roughly equals a decent sized scale within the square
   _ChessGrid.prototype._PIECE_REG_EX = /[a-hA-H][1-8]/;
+  _ChessGrid.prototype._CASTLE_KS_REG_EX = /^O-O$/;
+  _ChessGrid.prototype._CASTLE_QS_REG_EX = /^O-O-O$/;
 
   // Variables
   _ChessGrid.prototype._squareLength = 0;
@@ -372,15 +402,28 @@ var ChessGrid = (function (SuperClass, isAbstract) {
    *    'height' (the height of the square)
    */
   function _gridSquareBoundingBox(boardCoordinate) {
-    var matches = boardCoordinate.match(this._PIECE_REG_EX);
-    if (matches === null) {
-      console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
-    } else {
-      boardCoordinate = matches[0];
+    var isKingCastle = this._CASTLE_KS_REG_EX.test(boardCoordinate);
+    var isQueenCastle = this._CASTLE_QS_REG_EX.test(boardCoordinate);
+
+    if (!(isKingCastle || isQueenCastle)) {
+      // Not castling, a regular move, parse it into a piece
+      var matches = boardCoordinate.match(this._PIECE_REG_EX);
+      if (matches === null) {
+        console.warn("Cannot get position of an invalid board coordinate (" + boardCoordinate + ")");
+      } else {
+        boardCoordinate = matches[0];
+      }
     }
 
-    var theLetter = boardCoordinate.charAt(0);
-    var theNumber = parseInt(boardCoordinate.charAt(1));
+    var theLetter;
+    var theNumber;
+    if (isKingCastle || isQueenCastle) {
+      theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
+      theLetter = (isQueenCastle) ? 'c' : 'g';
+    } else {
+      theLetter = boardCoordinate.charAt(0);
+      theNumber = parseInt(boardCoordinate.charAt(1));
+    }
 
     var boardSideLength = this._squareLength * this._GRID_SIZE;
     var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
@@ -471,8 +514,9 @@ var ChessGrid = (function (SuperClass, isAbstract) {
    * @private
    * @param from {string} - The SAN location for where the piece is moving from
    * @param to {string} - The SAN location for where the piece is to go to
+   * @param silentMove {boolean} - Do we want to report this move? False does not report the move to the chess listener
    */
-  function _movePiece(from, to) {
+  function _movePiece(from, to, silentMove) {
     var fromLoc = from.match(this._PIECE_REG_EX)[0];
     var toLoc = to.match(this._PIECE_REG_EX)[0];
 
@@ -480,26 +524,29 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     if (fromObj === undefined) return; // no piece at this location
 
     fromObj.updateLocation(_getPlacementPosition.call(this, to));
-    var flag = this._chessListener.move({from: fromLoc, to: toLoc}).flags;
-    /* Flags:
-     'n' - a non-capture
-     'b' - a pawn push of two squares
-     'e' - an en passant capture
-     'c' - a standard capture
-     'p' - a promotion
-     'k' - kingside castling
-     'q' - queenside castling
-     */
+    var flag = null;
     var removeLoc = toLoc;
-    if (flag === 'e') {
-      // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
-      var horizontalRow = parseInt(removeLoc.charAt(1));
-      if (horizontalRow == 6) {
-        horizontalRow--; // 'top-down'
-      } else if (horizontalRow == 3) {
-        horizontalRow++; // 'bottom-up'
+    if (!silentMove) {
+      flag = this._chessListener.move({from: fromLoc, to: toLoc}).flags;
+      /* Flags:
+       'n' - a non-capture
+       'b' - a pawn push of two squares
+       'e' - an en passant capture
+       'c' - a standard capture
+       'p' - a promotion
+       'k' - kingside castling
+       'q' - queenside castling
+       */
+      if (flag === 'e') {
+        // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
+        var horizontalRow = parseInt(removeLoc.charAt(1));
+        if (horizontalRow == 6) {
+          horizontalRow--; // 'top-down'
+        } else if (horizontalRow == 3) {
+          horizontalRow++; // 'bottom-up'
+        }
+        removeLoc = removeLoc.charAt(0) + horizontalRow;
       }
-      removeLoc = removeLoc.charAt(0) + horizontalRow;
     }
     _removePiece.call(this, removeLoc);
 
