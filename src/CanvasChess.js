@@ -218,10 +218,15 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       height = this._savedClientHeight - (this._containerTag.getBoundingClientRect().top * 2);
       // (above) * 2: one for the top offset + one as a bottom buffer
     }
-    this._canvasTag.width = width * window.devicePixelRatio;
-    this._canvasTag.height = height * window.devicePixelRatio;
-    this._canvasTag.style.width = width + 'px';
-    this._canvasTag.style.height = height + 'px';
+    if (window.devicePixelRatio !== 1) { // quality degrades if you apply an equal width/height to the style that is used in the attributes
+      this._canvasTag.width = width * window.devicePixelRatio;
+      this._canvasTag.height = height * window.devicePixelRatio;
+      this._canvasTag.style.width = width + 'px';
+      this._canvasTag.style.height = height + 'px';
+    } else {
+      this._canvasTag.width = width;
+      this._canvasTag.height = height;
+    }
   }
 
   /**
