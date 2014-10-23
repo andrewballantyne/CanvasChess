@@ -72,7 +72,6 @@ The CanvasChess class can take a set of options on initialization.
             darkSquareColor: '#000000'    
         }
         position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        toPlay: 'white',
         events : {
             onGameStart: function(event) {
                 console.log('I can beat Carlsen this time.');

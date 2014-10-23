@@ -54,13 +54,21 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._board.updateSideLength(_getLength.call(this));
   };
   _CanvasChess.prototype.resetBoard = function () {
+    // Update for a reset
   	delete this._moves;
-    return this._model.reset();
+    this._model.reset();
+
+    // Update the PlayerText
+    _updatePlayerTurnText.call(this);
   };
 
   _CanvasChess.prototype.clearBoard = function () {
+    // Update for a clear
   	delete this._moves;
-    return this._model.clear();
+    this._model.clear();
+
+    // Update the PlayerText
+    _updatePlayerTurnText.call(this);
   };
 
   _CanvasChess.prototype.history = function () {
@@ -89,11 +97,17 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
 
   _CanvasChess.prototype.move = function (move) {
+    // Trigger the move event
     this.$triggerEvent('onPlayerMove', [{playerColor: CanvasChess.currentPlayerTurn, move: move.to}]);
 
-    _flipPlayer.call(this);
+    // Update the move
     delete this._moves;
-    return this._model.move(move);
+    var moveDetails = this._model.move(move);
+
+    // Update the PlayerText
+    _updatePlayerTurnText.call(this);
+
+    return moveDetails;
   };
 
   _CanvasChess.prototype.getMoves = function (gridCoordinate) {
@@ -114,7 +128,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       if (this._board !== null) {
         this._board.useFen(newFen);
       }
-      return this._model.load(newFen);
+      var successfulSet = this._model.load(newFen);
+      _updatePlayerTurnText.call(this);
+      return successfulSet;
     } else {
       return this._model.fen();
     }
@@ -155,6 +171,8 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._stage = null;
   /** @type ChessBoard **/
   _CanvasChess.prototype._board = null;
+  /** @type ActivePlayerBanner **/
+  _CanvasChess.prototype._activePlayerBanner = null;
 
   /* ----- Private Methods ----- */
   /**
@@ -236,14 +254,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
 
     /* Game Options */
-    if (typeof options.toPlay === 'string') {
-      CanvasChess.currentPlayerTurn =
-        (options.toPlay === 'white' || options.toPlay === 'w') ?
-          CanvasChess.PLAYER_WHITE :
-          CanvasChess.PLAYER_BLACK;
-    }
     if (typeof options.position === 'string') {
       this.setFenString(options.position);
+      CanvasChess.currentPlayerTurn = this._model.turn();
     }
 
     /* Players Options */
@@ -413,12 +426,11 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this.$triggerEvent('onGameStart', []);
   }
 
-  function _flipPlayer() {
-    CanvasChess.currentPlayerTurn =
-      (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ?
-        CanvasChess.PLAYER_BLACK :
-        CanvasChess.PLAYER_WHITE;
-    this._activePlayerBanner.changePlayer(CanvasChess.currentPlayerTurn);
+  function _updatePlayerTurnText() {
+    CanvasChess.currentPlayerTurn = this._model.turn();
+    if (this._activePlayerBanner !== null) {
+      this._activePlayerBanner.changePlayer(CanvasChess.currentPlayerTurn);
+    }
   }
 
   function _getLength() {
