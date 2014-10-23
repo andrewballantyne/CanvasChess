@@ -55,7 +55,6 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
   _CanvasChess.prototype.resetBoard = function () {
     // Update for a reset
-  	delete this._moves;
     this._model.reset();
 
     // Update the PlayerText
@@ -64,7 +63,6 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
   _CanvasChess.prototype.clearBoard = function () {
     // Update for a clear
-  	delete this._moves;
     this._model.clear();
 
     // Update the PlayerText
@@ -72,22 +70,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
 
   _CanvasChess.prototype.history = function () {
-    if (this._moves) {
-      return this._moves;
-    }
-    var history = this._model.history();
-    this._moves = [];
-    for (var i = 0; i < history.length; i++) {
-      if (i === history.length - 1) {
-        // white move
-        this._moves.push({white: history[i], black: ''});
-      } else {
-        // black move
-        this._moves.push({white: history[i], black: history[i + 1]});
-        i++;
-      }
-    }
-    return this._moves;
+    return this._model.history();
   };
 
   _CanvasChess.prototype.randomMove = function () {
@@ -97,16 +80,12 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
 
   _CanvasChess.prototype.move = function (move) {
-    // Trigger the move event
-    this.$triggerEvent('onPlayerMove', [{playerColor: CanvasChess.currentPlayerTurn, move: move.to}]);
-
     // Update the move
-    delete this._moves;
     var moveDetails = this._model.move(move);
-
     // Update the PlayerText
     _updatePlayerTurnText.call(this);
-
+    // Trigger the move event
+    this.$triggerEvent('onPlayerMove', [{move: moveDetails}]);
     return moveDetails;
   };
 
