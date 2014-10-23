@@ -31,8 +31,10 @@ demoApp.controller('demoController', function ($scope) {
       $scope.$apply(function() {
         $scope.history = angular.copy(moves);
       });
+    } else {
+        $scope.history = angular.copy(moves);
     }
-  }
+  };
 
   var options = {
     demoMode: false,
