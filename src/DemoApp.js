@@ -45,7 +45,6 @@ demoApp.controller('demoController', function ($scope) {
       availableMovesColor: 'rgba(51, 255, 51, .4)'
     },
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-    toPlay: 'white',
     events : {
       onPlayerMove: $scope.playerMoved
     }
