@@ -433,10 +433,8 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     if (fromObj === undefined) return; // no piece at this location
 
     fromObj.updateLocation(_getPlacementPosition.call(this, to));
-    var flag = null;
-    var removeLoc = toLoc;
     if (!silentMove) {
-      flag = this._chessListener.move({from: fromLoc, to: toLoc}).flags;
+      var flag = this._chessListener.move({from: fromLoc, to: toLoc}).flags;
       /* Flags:
        'n' - a non-capture
        'b' - a pawn push of two squares
@@ -446,6 +444,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
        'k' - kingside castling
        'q' - queenside castling
        */
+      var removeLoc = null;
       if (flag === 'e') {
         // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
         var horizontalRow = parseInt(removeLoc.charAt(1));
@@ -456,8 +455,11 @@ var ChessGrid = (function (SuperClass, isAbstract) {
         }
         removeLoc = removeLoc.charAt(0) + horizontalRow;
       }
+
+      if (removeLoc !== null) {
+        _removePiece.call(this, removeLoc);
+      }
     }
-    _removePiece.call(this, removeLoc);
 
     this._pieceMap[toLoc] = this._pieceMap[fromLoc];
     delete this._pieceMap[fromLoc];
