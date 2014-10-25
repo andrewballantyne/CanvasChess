@@ -1,22 +1,23 @@
-var demoApp = angular.module('CanvasChessDemoApp', []);
-
+var demoApp = angular.module('CanvasChessDemoApp', ['luegg.directives']);
 demoApp.controller('demoController', function ($scope) {
-  var ignoreMoveTrigger = false;
+  
   $scope.fenString = function(newFen) {
     if (angular.isDefined(newFen)) {
       $scope.chessBoard.setFenString(newFen);
     }
     return $scope.chessBoard.getFenString();
   };
+
+  $scope.gameStarted = function() {
+    $scope.history = [];
+  };
+
   $scope.playerMoved = function(event) {
-    if (ignoreMoveTrigger) {
-      ignoreMoveTrigger = false;
-      return;
-    }
     if (false === $scope.chessBoard.isGameOver() &&
         ($scope.chessBoard.history().length % 2) === 1) {
-      ignoreMoveTrigger = true;
-      $scope.chessBoard.randomMove();
+      setTimeout(function() {
+        $scope.chessBoard.randomMove();
+      }, '1000');
     }
     $scope.updateMoves();
   };
@@ -46,10 +47,11 @@ demoApp.controller('demoController', function ($scope) {
       availableMovesColor: 'rgba(51, 255, 51, .4)'
     },
     position: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    canPlay: 'white',
     events : {
+      onGameStart:  $scope.gameStarted,
       onPlayerMove: $scope.playerMoved
     }
   };
   $scope.chessBoard = new CanvasChess('demoBoard', options);
-  $scope.history = [];
 });

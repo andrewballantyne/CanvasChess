@@ -59,6 +59,8 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
     // Update the PlayerText
     _updatePlayerTurnText.call(this);
+
+    this.$triggerEvent('onGameStart', []);
   };
 
   _CanvasChess.prototype.clearBoard = function () {
@@ -220,6 +222,17 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     /* Demo Mode Option */
     if (typeof options.demoMode === 'boolean') {
       this._demoMode = options.demoMode;
+    }
+
+    /* Enforce which side of the board the player plays */
+    this._canPlay = 'both'; // by default they can move pieces from either colour
+    if (options.canPlay) {
+        // we ignore options other than 'white' or 'black'
+        switch (options.canPlay) {
+            case 'white' :
+            case 'black' :
+                this._canPlay = options.canPlay;
+        }
     }
 
     /* Theme Options */

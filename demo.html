@@ -32,7 +32,7 @@
             </button>
             Rotate the board
           </div>
-          <div class="well" style="height: 400px; overflow-y: scroll">
+          <div class="well" style="height: 400px; overflow-y: scroll" scroll-glue>
             <h3>History</h3>
             <table class="table table-striped table-condensed table-bordered">
               <tr>
@@ -50,19 +50,14 @@
         </div>
         <div class="col-lg-2 col-sm-4 col-xs-12">
           <div class="well">
-            <div class="btn-group btn-group-justified">
-              <div class="btn-group">
-                <button type="button" class="btn btn-default" ng-click="chessBoard.resetBoard()">
-                  Reset board
-                </button>
-              </div>
-              <div class="btn-group">
-                <button type="button" class="btn btn-default" ng-click="chessBoard.clearBoard()">
-                  Clear board
-                </button>
-              </div>
+            <div class="btn-group-vertical">
+              <button type="button" class="btn btn-default" ng-click="chessBoard.resetBoard()">
+                Reset board
+              </button>
+              <button type="button" class="btn btn-default" ng-click="chessBoard.clearBoard()">
+                Clear board
+              </button>
             </div>
-            <p>Quick actions to return the board to an initial state.</p>
           </div>
           <div class="well">
             <div class="checkbox">
@@ -86,6 +81,7 @@
     <script src="bower_components/chess.js/chess.js"></script>
     <script src="bower_components/class-vehicle/core/ClassVehicle.js"></script>
     <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angularjs-scroll-glue/src/scrollglue.js"></script>
 
     <!-- Include our UI Classes -->
     <script src="src/ActivePlayerBanner.js"></script>
