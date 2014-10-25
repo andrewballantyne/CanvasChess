@@ -115,6 +115,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
   };
 
+  _CanvasChess.prototype.isGameOver = function() {
+    return this._model.game_over();
+  };
+
   /* ----- Protected Methods ----- */
 
   /* ----- Private Variables ----- */

@@ -1,7 +1,7 @@
 var demoApp = angular.module('CanvasChessDemoApp', []);
 
 demoApp.controller('demoController', function ($scope) {
-
+  var ignoreMoveTrigger = false;
   $scope.fenString = function(newFen) {
     if (angular.isDefined(newFen)) {
       $scope.chessBoard.setFenString(newFen);
@@ -9,11 +9,16 @@ demoApp.controller('demoController', function ($scope) {
     return $scope.chessBoard.getFenString();
   };
   $scope.playerMoved = function(event) {
+    if (ignoreMoveTrigger) {
+      ignoreMoveTrigger = false;
+      return;
+    }
+    if (false === $scope.chessBoard.isGameOver() &&
+        ($scope.chessBoard.history().length % 2) === 1) {
+      ignoreMoveTrigger = true;
+      $scope.chessBoard.randomMove();
+    }
     $scope.updateMoves();
-  };
-
-  $scope.randomMove = function() {
-    $scope.chessBoard.randomMove();
   };
 
   $scope.updateMoves = function() {
@@ -27,13 +32,9 @@ demoApp.controller('demoController', function ($scope) {
       moves.push({white: history[i], black: history[i+1]});
       i++;
     }
-    if(!$scope.$$phase) {
-      $scope.$apply(function() {
-        $scope.history = angular.copy(moves);
-      });
-    } else {
-        $scope.history = angular.copy(moves);
-    }
+    $scope.$apply(function() {
+      $scope.history = angular.copy(moves);
+    });
   };
 
   var options = {
