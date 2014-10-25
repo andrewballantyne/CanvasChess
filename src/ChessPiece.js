@@ -36,11 +36,17 @@ var ChessPiece = (function (SuperClass, isAbstract) {
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
-  _ChessPiece.prototype.highlight = function (shadowColor) {
+  /**
+   * Highlight the piece.
+   */
+  _ChessPiece.prototype.highlight = function () {
     if (this.shadow !== null) return;
 
-    this.shadow = new createjs.Shadow(shadowColor, 0, 0, 15);
+    this.shadow = new createjs.Shadow(CanvasChess.colorScheme.pieceHighlightColor, 0, 0, 15);
   };
+  /**
+   * UnHighlight this piece.
+   */
   _ChessPiece.prototype.unHighlight = function () {
     this.shadow = null;
   };
@@ -54,6 +60,11 @@ var ChessPiece = (function (SuperClass, isAbstract) {
     this.x = newBoardLocation.x;
     this.y = newBoardLocation.y;
   };
+  /**
+   * Determine if in the passed moves, is there a promotion available here?
+   *
+   * @param possibleMoves {string[]} - The list of possible moves
+   */
   _ChessPiece.prototype.validateForPromote = function (possibleMoves) {
     for (var i = 0; i < possibleMoves.length; i++) {
       if (this._PROMOTION_REG_EX.test(possibleMoves[i])) {

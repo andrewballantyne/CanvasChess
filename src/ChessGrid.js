@@ -25,7 +25,6 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     this._squareLength = squareSideLength;
     this._lightColor = CanvasChess.colorScheme.lightSquareColor;
     this._darkColor = CanvasChess.colorScheme.darkSquareColor;
-    this._highlightColor = CanvasChess.colorScheme.pieceHighlightColor;
     this._availableMovesColor = CanvasChess.colorScheme.availableMoveSquareColor;
     this._chessListener = chessListener;
 
@@ -634,7 +633,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
       if (possibleMoves.length > 0) {
         // Highlight *this* square
-        piece.highlight(this._highlightColor);
+        piece.highlight();
       } else {
         // Un-highlight the selected square, no moves for this guy
         piece.unHighlight();
@@ -646,26 +645,41 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     }
     return false;
   }
+
+  /**
+   * @private
+   * @param localPoint {createjs.Point} - An x/y point local to the grid
+   * @returns {boolean} - True if we selected something; false if the click didn't hit anything
+   */
   function _promotionClick(localPoint) {
     var gotSomething = false;
 
+    // Check for the selection of one of the options
     var pieceSelection = this._promotionSelector.checkForSelection(localPoint);
 
     if (pieceSelection !== null) {
-      this._promotionSelector.hide();
       gotSomething = true;
 
+      // Hide the promotion selector, since we have what we want
+      this._promotionSelector.hide();
+
+      // Compile a regEx that will find us our promotion move
       var lowCase = pieceSelection.toLowerCase();
       var upCase = pieceSelection.toUpperCase();
-      var newRegEx = new RegExp("=[" + lowCase + upCase + "]");
+      var regEx = new RegExp("=[" + lowCase + upCase + "]");
 
+      // Loop the possible promotions that met our move criteria, look for our promotion move
       for (var i = 0; i < this._possiblePromotions.length; i++) {
         var move = this._possiblePromotions[i];
-        if (newRegEx.test(move)) {
-          _removePiece.call(this, move);
+        if (regEx.test(move)) { // does this move match our promotion move
+          _removePiece.call(this, move); // remove the pawn
+
+          // Create the piece we need and add it
           var piece = new ChessPiece(this._ss, pieceSelection, _getPlacementPosition.call(this, move));
           piece.scaleX = piece.scaleY = this._squareLength / this._PIECE_SCALE;
           _addPiece.call(this, move, piece);
+
+          // Finalize the 'move'
           this._chessListener.move(move);
           break;
         }

@@ -14,6 +14,9 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
   /**
    * @constructor
    *
+   * @param ss {createjs.SpriteSheet} - The piece SpriteSheet
+   * @param squareSize {number} - The size of a side on a single square of the chess grid
+   * @param pieceScale {number} - The scale in which to size a piece to
    */
   function ChessPromotionSelectorConstructor(ss, squareSize, pieceScale) {
     SuperClass.call(this); // super call
@@ -34,40 +37,71 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
+  /**
+   * @override
+   * Checks if within the ChessGrid.
+   *
+   * @param inputPoint {createjs.Point} - An x/y location of the input
+   * @returns {boolean} - True if within, false if not
+   */
   _ChessPromotionSelector.prototype.isWithin = function (inputPoint) {
     var xy = this.$getXY();
     return this.$checkRect(inputPoint, xy.x, xy.y, this.width, this.height);
   };
+  /**
+   * @override
+   * Check for an option selection within the Chess Promotion Window.
+   *
+   * @param inputPoint {createjs.Point} - An x/y location of the input
+   * @returns {string} - The
+   */
   _ChessPromotionSelector.prototype.checkForSelection = function (inputPoint) {
     if (!SuperClass.prototype.inputDown.call(this, inputPoint)) return null;
 
     // Get local to the grid
     var localPoint = this.$convertToLocal.call(this, inputPoint);
 
+    // Loop the contents of the Promotion Selection Window to see if any piece was selected
     for (var i = 0; i < this._contents.children.length; i++) {
       var content = this._contents.children[i];
-      if (content instanceof createjs.Text) continue; // we don't need the text, only the pieces
+      if (!(content instanceof ChessPiece)) continue; // we don't need anything but the pieces
 
+      // Get the local x/y to the piece
       var x = localPoint.x - content.x;
       var y = localPoint.y - content.y;
-      if (content.hitTest(x, y)) {
-        console.log("Hit " + content.type);
-        return content.type;
+      if (content.hitTest(x, y)) { // are we within this piece?
+        return content.type; // return the symbol of the piece
       }
     }
 
     return null;
   };
+  /**
+   * Show the Promotion Selector for the current player.
+   */
   _ChessPromotionSelector.prototype.show = function () {
     _createOptions.call(this, CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE);
     this.visible = true;
   };
+  /**
+   * Hide the Promotion Selector
+   */
   _ChessPromotionSelector.prototype.hide = function () {
     this.visible = false;
   };
+  /**
+   * Is the Promotion Selector visible?
+   *
+   * @returns {boolean} - True if the Promotion Selector is visible; False if hidden
+   */
   _ChessPromotionSelector.prototype.isShowing = function () {
     return this.visible;
   };
+  /**
+   * Update the Promotion Window to a new size
+   *
+   * @param squareSize {number} - The size of a single square on the grid
+   */
   _ChessPromotionSelector.prototype.updateSize = function (squareSize) {
     this._squareSize = squareSize;
     this.width = squareSize * 4 * 1.5;
@@ -78,6 +112,12 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
   };
 
   /* ----- Protected Methods ----- */
+  /**
+   * Convert the passed input point into a local point.
+   *
+   * @param inputPoint {createjs.Point} - The input point
+   * @returns {createjs.Point} - The local point
+   */
   _ChessPromotionSelector.prototype.$convertToLocal = function (inputPoint) {
     var newInputPoint = SuperClass.prototype.$convertToLocal.call(this, inputPoint);
 
@@ -105,6 +145,13 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
     }
     this._background.graphics.beginFill('white').drawRoundRect(0, 0, this.width, this.height, 15);
   }
+
+  /**
+   * @private
+   * Create options for white or black depending on what is passed in.
+   *
+   * @param displayWhite {boolean} - True if we are to display white pieces; false to display black
+   */
   function _createOptions(displayWhite) {
     if (this._contents === null) {
       this._contents = new createjs.Container();
