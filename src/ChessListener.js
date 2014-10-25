@@ -53,8 +53,22 @@ var ChessListener = (function (isAbstract) {
     throw new Error("setFenString is an abstract method and cannot be called directly.");
   };
 
+  /**
+   * Registers a callback event.
+   *
+   * @param eventName {string} - The Event to bind the callback to (when $triggerEvent is called, all events bound will be called)
+   * @param callback {Function} - The method to call on trigger
+   */
+  _ChessListener.prototype.registerCallbackEvent = function (eventName, callback) {
+    if (this._eventListenerMap[eventName] === undefined) {
+      this._eventListenerMap[eventName] = [];
+    }
+    this._eventListenerMap[eventName].push(callback);
+  };
+
   /* ----- Protected Methods ----- */
   /**
+   * @protected
    * Trigger an event that has been registered.
    *
    * @param eventName {string} - The Event to trigger (will trigger all callbacks registered with this event)
@@ -69,19 +83,6 @@ var ChessListener = (function (isAbstract) {
         }
       }
     }
-  };
-
-  /**
-   * Registers a callback event.
-   *
-   * @param eventName {string} - The Event to bind the callback to (when $triggerEvent is called, all events bound will be called)
-   * @param callback {Function} - The method to call on trigger
-   */
-  _ChessListener.prototype.$registerCallbackEvent = function (eventName, callback) {
-    if (this._eventListenerMap[eventName] === undefined) {
-      this._eventListenerMap[eventName] = [];
-    }
-    this._eventListenerMap[eventName].push(callback);
   };
 
   /* ----- Private Variables ----- */

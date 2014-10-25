@@ -31,6 +31,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
+    _createPromotionSelector.call(this);
   }
 
   /* ----- Public Variables ----- */
@@ -57,98 +58,22 @@ var ChessGrid = (function (SuperClass, isAbstract) {
    */
   _ChessGrid.prototype.inputDown = function (inputPoint) {
     if (!SuperClass.prototype.inputDown.call(this, inputPoint)) return false;
-    var i;
 
     // Get local to the grid
     var localPoint = this.$convertToLocal.call(this, inputPoint);
 
-    var gridInputLocation = _getBoardCoordinatesFromInput.call(this, localPoint);
-
-    // Check to see if we are moving to another square
-    var theMove = null;
-    var isCastle = false;
-    if (this._possibleSelectedMoves !== null) {
-      for (i = 0; i < this._possibleSelectedMoves.length; i++) {
-        var possibleMove = null;
-        var thisMove = this._possibleSelectedMoves[i];
-
-        // Check if it's a castling move
-        var isKingCastle = this._CASTLE_KS_REG_EX.test(thisMove);
-        var isQueenCastle = this._CASTLE_QS_REG_EX.test(thisMove);
-        if (isKingCastle || isQueenCastle) {
-          // This move is a castling move, check if it matches the square clicked
-          var theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
-          var theLetter = (isQueenCastle) ? 'c' : 'g';
-          possibleMove = theLetter + theNumber.toString();
-          if (possibleMove === gridInputLocation) {
-            // This is the square we clicked, we are castling
-            theMove = theLetter + theNumber.toString();
-            isCastle = true;
-            break;
-          }
-        } else {
-          // Not castling, check to see if thisMove is the grid location we clicked
-          var matches = thisMove.match(this._PIECE_REG_EX);
-          possibleMove = (matches !== null) ? matches[0] : null; // only 1 location to come out of a SAN notation
-          if (possibleMove === gridInputLocation) {
-            theMove = thisMove;
-            break;
-          }
-        }
-      }
-    }
-
-    // Determine if we are doing an action
     var gotSomething = false;
-    if (theMove !== null) {
-      // We are moving a piece
-      _movePiece.call(this, this._selectedPiece.gridLocation, theMove);
-      if (isCastle) {
-        // We are castling, make sure we move the rook as well
-        if (theMove.charAt(0) === 'c') { // Queen Castle
-          _movePiece.call(this, 'a' + theMove.charAt(1), 'd' + theMove.charAt(1), true);
-        } else { // King Castle
-          _movePiece.call(this, 'h' + theMove.charAt(1), 'f' + theMove.charAt(1), true);
-        }
-      }
-      _clearSelection.call(this);
-      gotSomething = true;
+    if (this._promotionSelector.isShowing()) {
+      // The Promotion Selector is showing, we only care about a click inside it
+      gotSomething = _promotionClick.call(this, localPoint);
     } else {
-      // Check if we are selecting a piece
-      var piece = this._pieceMap[gridInputLocation];
-      if (piece !== null && piece !== undefined) { // there is a piece at the click location
-        if (this._selectedPiece !== null) {
-          this._selectedPiece.shadow = null;
-          this._selectedPiece = null;
-        }
-
-        // Highlight all possible moves
-        var possibleMoves = this._chessListener.getMoves(piece.gridLocation);
-        this._possibleSelectedMoves = possibleMoves;
-        _highlightMoveSquares.call(this, possibleMoves);
-
-        if (possibleMoves.length > 0) {
-          // Highlight *this* square
-          if (piece.shadow === null) {
-            piece.shadow = new createjs.Shadow(this._highlightColor, 0, 0, 15);
-          }
-        } else {
-          // Un-highlight the selected square, no moves for this guy
-          piece.shadow = null;
-        }
-
-        this._selectedPiece = piece;
-
-        gotSomething = true;
-      }
-    }
-
-    if (!gotSomething) {
-      _clearSelection.call(this);
+      // Standard game click
+      gotSomething = _boardClick.call(this, localPoint);
     }
 
     return gotSomething;
   };
+
   /**
    * Update the Grid Size.
    *
@@ -162,6 +87,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
     _updatePieceSize.call(this);
+    _updatePromotionSelector.call(this);
   };
   /**
    * Update entire grid with a fen string; This will clear the existing pieces.
@@ -216,11 +142,14 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
     if (this._pieceContainer === null) {
       this._pieceContainer = new createjs.Container();
-      this.addChild(this._pieceContainer);
+      this.addChildAt(this._pieceContainer, this.getChildIndex(this._promotionSelector));
     } else {
       _clearSelection.call(this);
       // TODO: Diff the fen
       this._pieceContainer.removeAllChildren();
+
+      // Since we are refreshing locations of everyone, we need to reset the promotion select visibility
+      this._promotionSelector.visible = false;
     }
 
     var fenStringSections = fenString.split(' ');
@@ -280,6 +209,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   _ChessGrid.prototype._lightColor = 'white';
   _ChessGrid.prototype._darkColor = 'black';
   _ChessGrid.prototype._possibleSelectedMoves = null; // null == no selected piece; [] == no moves; [...,'e2','e3',...] all possible moves
+  _ChessGrid.prototype._possiblePromotions = null;
 
   // Object references
   /** @type createjs.SpriteSheet **/
@@ -299,11 +229,11 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   /** @type createjs.Container **/
   _ChessGrid.prototype._pieceContainer = null;
   /** @type createjs.Shape **/
-  _ChessGrid.prototype._selectedSquare = null;
-  /** @type createjs.Shape **/
   _ChessGrid.prototype._highlightedMoves = null;
+  /** @type ChessPromotionSelector **/
+  _ChessGrid.prototype._promotionSelector = null;
 
-    /* ----- Private Methods ----- */
+  /* ----- Private Methods ----- */
   function _drawLightBackdrop() {
     if (this._lightBackdrop === null) {
       this._lightBackdrop = new createjs.Shape();
@@ -449,26 +379,6 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
   /**
    * @private
-   * @param gridLocation {string} - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]; set to null to clear
-   * @param locationRect {createjs.Rectangle?} - Optional. The rectangle for the gridLocation (if not provided it will be fetched within)
-   */
-  function _highlightPiece(gridLocation, locationRect) {
-    if (this._selectedSquare === null) {
-      this._selectedSquare = new createjs.Shape();
-      this.addChildAt(this._selectedSquare, this.getChildIndex(this._darkSquares) + 1);
-    } else {
-      this._selectedSquare.graphics.clear();
-    }
-
-    if (gridLocation === null) return; // we just came to clear the square
-
-    this._selectedSquare.graphics.beginFill(this._highlightColor);
-
-    _highlightSquare.call(this, this._selectedSquare, gridLocation, locationRect);
-  }
-
-  /**
-   * @private
    * @param highlightShape {createjs.Shape} - The shape object to draw the highlight (define .graphics.beginFill(...) before calling)
    * @param gridLocation {string} - The board coordinate; MUST be two characters and be of the format [a-hA-H][1-8]
    * @param locationRect {createjs.Rectangle?} - Optional. The rectangle for the gridLocation (if not provided it will be fetched within)
@@ -503,10 +413,10 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   }
   function _clearSelection() {
     if (this._selectedPiece !== null) {
-      this._selectedPiece.shadow = null;
+      this._selectedPiece.unHighlight();
     }
-    this._selectedPiece = null;
     this._possibleSelectedMoves = null;
+    this._selectedPiece = null;
     _highlightMoveSquares.call(this, null);
   }
 
@@ -540,9 +450,9 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       if (flag === 'e') {
         // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
         var horizontalRow = parseInt(removeLoc.charAt(1));
-        if (horizontalRow == 6) {
+        if (horizontalRow === 6) {
           horizontalRow--; // 'top-down'
-        } else if (horizontalRow == 3) {
+        } else if (horizontalRow === 3) {
           horizontalRow++; // 'bottom-up'
         }
         removeLoc = removeLoc.charAt(0) + horizontalRow;
@@ -576,6 +486,193 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       this._pieceContainer.removeChild(piece);
       delete this._pieceMap[onLoc];
     }
+  }
+
+  function _createPromotionSelector() {
+    this._promotionSelector = new ChessPromotionSelector(this._ss, this._squareLength, this._PIECE_SCALE);
+    this.addChild(this._promotionSelector);
+    this._promotionSelector.visible = false;
+    _updatePromotionSelector.call(this);
+  }
+
+  function _updatePromotionSelector() {
+    // Size Update
+    this._promotionSelector.updateSize(this._squareLength);
+
+    // Location Update
+    var boardSize = this._squareLength * this._GRID_SIZE;
+    this._promotionSelector.regX = this._promotionSelector.width / 2;
+    this._promotionSelector.regY = this._promotionSelector.height / 2;
+    this._promotionSelector.x = boardSize / 2;
+    this._promotionSelector.y = boardSize / 2;
+  }
+
+  /**
+   * @private
+   * @param localPoint {createjs.Point} - An x/y point local to the grid
+   * @returns {boolean} - True if we selected something; false if the click didn't hit anything
+   */
+  function _boardClick(localPoint) {
+    var gotSomething = false;
+    var gridInputLocation = _getBoardCoordinatesFromInput.call(this, localPoint);
+
+    if (this._possibleSelectedMoves !== null) {
+      // We have possible moves, this means we have a selection; check to see if we are selecting on of those possible move squares
+      gotSomething = _checkPossibleMoves.call(this, gridInputLocation);
+    }
+
+    if (!gotSomething) {
+      // We haven't got something, see if we are clicking on another piece
+      gotSomething = _selectPiece.call(this, gridInputLocation);
+    }
+
+    if (!gotSomething) {
+      // We still haven't got something, time to clear the selection; we have entirely missed clicking on something
+      _clearSelection.call(this);
+    }
+
+    return gotSomething;
+  }
+
+  /**
+   * @private
+   * @param gridInputLocation {string} - The grid location that clicked (ie e4, f3, etc)
+   * @returns {boolean} - True if we selected something; false if the click didn't hit anything
+   */
+  function _checkPossibleMoves(gridInputLocation) {
+    var gotSomething = false;
+    var theMove = null;
+    var isCastle = false;
+    var i;
+
+    // Loop the possible moves, check to see if any of them were selected
+    for (i = 0; i < this._possibleSelectedMoves.length; i++) {
+      var possibleMove = null;
+      var thisMove = this._possibleSelectedMoves[i];
+
+      // Check if it's a castling move
+      var isKingCastle = this._CASTLE_KS_REG_EX.test(thisMove);
+      var isQueenCastle = this._CASTLE_QS_REG_EX.test(thisMove);
+      if (isKingCastle || isQueenCastle) {
+        // This move is a castling move, check if it matches the square clicked
+        var theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
+        var theLetter = (isQueenCastle) ? 'c' : 'g';
+        possibleMove = theLetter + theNumber.toString();
+        if (possibleMove === gridInputLocation) {
+          // This is the square we clicked, we are castling
+          theMove = theLetter + theNumber.toString();
+          isCastle = true;
+          break;
+        }
+      } else {
+        // Not castling, check to see if thisMove is the grid location we clicked
+        var matches = thisMove.match(this._PIECE_REG_EX);
+        possibleMove = (matches !== null) ? matches[0] : null; // only 1 location to come out of a SAN notation
+        if (possibleMove === gridInputLocation) {
+          theMove = thisMove;
+          break;
+        }
+      }
+    }
+
+    if (theMove !== null) {
+      // We have selected one of the possible move locations, act on it
+      if (this._selectedPiece.hasPromotion) {
+        // This piece has promotion, soft move the piece and prompt the promotion window
+        _movePiece.call(this, this._selectedPiece.gridLocation, theMove, true);
+        this._possiblePromotions = [];
+        var regEx = new RegExp(this._selectedPiece.gridLocation);
+        for (i = 0; i < this._possibleSelectedMoves.length; i++) {
+          if (regEx.test(this._possibleSelectedMoves[i])) {
+            this._possiblePromotions.push(this._possibleSelectedMoves[i]);
+          }
+        }
+        this._promotionSelector.show();
+      } else {
+        // We are moving a piece normally
+        _movePiece.call(this, this._selectedPiece.gridLocation, theMove); // *this* move
+
+        if (isCastle) {
+          // We are castling, make sure we move the rook as well
+          if (theMove.charAt(0) === 'c') { // Queen Castle
+            _movePiece.call(this, 'a' + theMove.charAt(1), 'd' + theMove.charAt(1), true); // rook move
+          } else { // King Castle
+            _movePiece.call(this, 'h' + theMove.charAt(1), 'f' + theMove.charAt(1), true); // rook move
+          }
+        }
+      }
+
+      // We have completed our task, lets clear any selection we currently have as there is nothing else to do
+      _clearSelection.call(this);
+
+      // Flag that we got something
+      gotSomething = true;
+    }
+
+    return gotSomething;
+  }
+
+  /**
+   * @private
+   * @param gridInputLocation {string} - The grid location that clicked (ie e4, f3, etc)
+   * @returns {boolean} - True if we selected something; false if the click didn't hit anything
+   */
+  function _selectPiece(gridInputLocation) {
+    // Check if we are selecting a piece
+    var piece = this._pieceMap[gridInputLocation];
+    if (piece !== undefined) { // there is a piece at the click location
+      if (this._selectedPiece !== null) {
+        this._selectedPiece.unHighlight();
+        this._selectedPiece = null;
+      }
+
+      // Highlight all possible moves
+      var possibleMoves = this._chessListener.getMoves(piece.gridLocation);
+      this._possibleSelectedMoves = possibleMoves;
+      piece.validateForPromote(possibleMoves);
+      _highlightMoveSquares.call(this, possibleMoves);
+
+      if (possibleMoves.length > 0) {
+        // Highlight *this* square
+        piece.highlight(this._highlightColor);
+      } else {
+        // Un-highlight the selected square, no moves for this guy
+        piece.unHighlight();
+      }
+
+      this._selectedPiece = piece;
+
+      return true;
+    }
+    return false;
+  }
+  function _promotionClick(localPoint) {
+    var gotSomething = false;
+
+    var pieceSelection = this._promotionSelector.checkForSelection(localPoint);
+
+    if (pieceSelection !== null) {
+      this._promotionSelector.hide();
+      gotSomething = true;
+
+      var lowCase = pieceSelection.toLowerCase();
+      var upCase = pieceSelection.toUpperCase();
+      var newRegEx = new RegExp("=[" + lowCase + upCase + "]");
+
+      for (var i = 0; i < this._possiblePromotions.length; i++) {
+        var move = this._possiblePromotions[i];
+        if (newRegEx.test(move)) {
+          _removePiece.call(this, move);
+          var piece = new ChessPiece(this._ss, pieceSelection, _getPlacementPosition.call(this, move));
+          piece.scaleX = piece.scaleY = this._squareLength / this._PIECE_SCALE;
+          _addPiece.call(this, move, piece);
+          this._chessListener.move(move);
+          break;
+        }
+      }
+    }
+
+    return gotSomething;
   }
 
   /**

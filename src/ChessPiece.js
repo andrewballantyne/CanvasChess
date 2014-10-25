@@ -31,10 +31,19 @@ var ChessPiece = (function (SuperClass, isAbstract) {
   /* ----- Public Variables ----- */
   _ChessPiece.prototype.type = '?'; // the 'name' and 'color' of the piece (K = white king, k = black king, etc)
   _ChessPiece.prototype.gridLocation = ''; // the grid coordinate (ie e2)
+  _ChessPiece.prototype.hasPromotion = false;
 
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
+  _ChessPiece.prototype.highlight = function (shadowColor) {
+    if (this.shadow !== null) return;
+
+    this.shadow = new createjs.Shadow(shadowColor, 0, 0, 15);
+  };
+  _ChessPiece.prototype.unHighlight = function () {
+    this.shadow = null;
+  };
   /**
    * Update the location of this piece.
    *
@@ -45,10 +54,19 @@ var ChessPiece = (function (SuperClass, isAbstract) {
     this.x = newBoardLocation.x;
     this.y = newBoardLocation.y;
   };
+  _ChessPiece.prototype.validateForPromote = function (possibleMoves) {
+    for (var i = 0; i < possibleMoves.length; i++) {
+      if (this._PROMOTION_REG_EX.test(possibleMoves[i])) {
+        this.hasPromotion = true;
+        break;
+      }
+    }
+  };
 
   /* ----- Protected Methods ----- */
 
   /* ----- Private Variables ----- */
+  _ChessPiece.prototype._PROMOTION_REG_EX = /=[Qq|Rr|Bb|Nn]/;
 
   /* ----- Private Methods ----- */
 

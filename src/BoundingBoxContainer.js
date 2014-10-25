@@ -46,6 +46,12 @@ var BoundingBoxContainer = (function (SuperClass, isAbstract) {
   /* ----- Public Methods ----- */
 
   /* ----- Protected Methods ----- */
+  _BoundingBoxContainer.prototype.$getXY = function () {
+    return {
+      x : this.x - this.regX,
+      y : this.y - this.regY
+    }
+  };
   /**
    * @protected
    * For the base class, we simply just want to copy the points into a new object (so modifications don't affect the original).

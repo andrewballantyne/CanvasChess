@@ -27,7 +27,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
     _calculateLength.call(this, sideLength);
 
     _renderLabels.call(this);
-    _renderBoard.call(this, ss, chessListener);
+    _render.call(this, ss, chessListener);
   }
 
   /* ----- Public Variables ----- */
@@ -43,7 +43,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
    * @returns {boolean} - The result of the isWithin function (true if inside, false if not)
    */
   _ChessBoard.prototype.isWithin = function (inputPoint) {
-    var xy = _getXY.call(this);
+    var xy = this.$getXY(); // corrects for regX/regY
     return this.$checkRect(inputPoint, xy.x, xy.y, this._fullBoardSideLength, this._fullBoardSideLength);
   };
   /**
@@ -75,7 +75,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
     _calculateLength.call(this, newLength);
 
     _renderLabels.call(this);
-    _updateBoardLocation.call(this);
+    _resize.call(this);
   };
 
   /* ----- Protected Methods ----- */
@@ -90,7 +90,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   _ChessBoard.prototype.$convertToLocal = function (inputPoint) {
     var newInputPoint = SuperClass.prototype.$convertToLocal.call(this, inputPoint);
 
-    var xy = _getXY.call(this); // corrects for regX/regY
+    var xy = this.$getXY(); // corrects for regX/regY
     newInputPoint.x -= xy.x;
     newInputPoint.y -= xy.y;
 
@@ -107,12 +107,6 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   _ChessBoard.prototype._boardGrid = null;
 
   /* ----- Private Methods ----- */
-  function _getXY() {
-    return {
-      x : this.x - this.regX,
-      y : this.y - this.regY
-    }
-  }
   function _getFontSize() {
     return this._gridCellSideLength / 2.5;
   }
@@ -172,14 +166,14 @@ var ChessBoard = (function (SuperClass, isAbstract) {
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    * @param chessListener {ChessListener} - The chess listener that will be on the receiving end of any model/notify user action
    */
-  function _renderBoard(ss, chessListener) {
+  function _render(ss, chessListener) {
     this._boardGrid = new ChessGrid(this._gridCellSideLength, ss, chessListener);
     this._boardGrid.x = this._gridCellSideLength;
     this._boardGrid.y = this._gridCellSideLength;
     this.addChild(this._boardGrid);
   }
 
-  function _updateBoardLocation() {
+  function _resize() {
     this._boardGrid.updateSize(this._gridCellSideLength);
     this._boardGrid.x = this._gridCellSideLength;
     this._boardGrid.y = this._gridCellSideLength;

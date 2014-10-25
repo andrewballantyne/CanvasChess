@@ -251,7 +251,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       for (var eventName in options.events) {
         if (!options.events.hasOwnProperty(eventName)) continue;
 
-        this.$registerCallbackEvent(eventName, options.events[eventName]);
+        this.registerCallbackEvent(eventName, options.events[eventName]);
       }
     }
   }
