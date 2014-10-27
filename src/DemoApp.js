@@ -17,7 +17,7 @@ demoApp.controller('demoController', function ($scope) {
         ($scope.chessBoard.history().length % 2) === 1) {
       setTimeout(function() {
         $scope.chessBoard.randomMove();
-      }, '1000');
+      }, 1000);
     }
     $scope.updateMoves();
   };
