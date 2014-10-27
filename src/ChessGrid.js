@@ -447,13 +447,13 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       var removeLoc = null;
       if (flag === 'e') {
         // en passant, our move will not land on the guy we are removing, we need to adjust to where he is before we can remove him
-        var horizontalRow = parseInt(removeLoc.charAt(1));
+        var horizontalRow = parseInt(toLoc.charAt(1));
         if (horizontalRow === 6) {
           horizontalRow--; // 'top-down'
         } else if (horizontalRow === 3) {
           horizontalRow++; // 'bottom-up'
         }
-        removeLoc = removeLoc.charAt(0) + horizontalRow;
+        removeLoc = toLoc.charAt(0) + horizontalRow;
       }
 
       if (removeLoc !== null) {
