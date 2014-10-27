@@ -36,6 +36,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    */
   function CanvasChessConstructor(containerId, options) {
     _createCanvas.call(this, containerId);
+    this._startupOptions = options;
     _parseOptions.call(this, options);
 
     _setupListeners.call(this);
@@ -57,15 +58,17 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   };
   _CanvasChess.prototype.resetBoard = function () {
     if (this._endingScreen !== null) {
+      // Hide the game ending screen
       this._endingScreen.hide();
     }
-
+    // Reset the options
+    this._canPlay = CanvasChess.PLAYER_BOTH;
+    _parseOptions.call(this, this._startupOptions);
     // Update for a reset
     this._model.reset();
-
     // Update the PlayerText
     _updatePlayerTurnText.call(this);
-
+    // Trigger the game start event, since we are resetting
     this.$triggerEvent('onGameStart', []);
   };
 
@@ -94,9 +97,16 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     _updatePlayerTurnText.call(this);
     // Trigger the move event
     this.$triggerEvent('onPlayerMove', [{move: moveDetails}]);
+    // Check to see if we need to update the graveyard
+    if (moveDetails !== null && (moveDetails.captured !== undefined)) {
+      // TODO: add to graveyard
+    }
+    // Validate to see if this move ended the game
     if (this.isGameOver()) {
+      // Show the game over text
       var causeOfGameEnd = _getGameOverCause.call(this);
       _showGameOverText.call(this, causeOfGameEnd);
+      // Trigger the game ending event
       this.$triggerEvent('onGameEnd', [{cause: causeOfGameEnd}]);
     }
     return moveDetails;
@@ -139,6 +149,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._model = new Chess();
 
   // Options
+  _CanvasChess.prototype._startupOptions = null;
   _CanvasChess.prototype._demoMode = false;
   _CanvasChess.prototype._pieceURL = null;
 
