@@ -14,6 +14,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   /* ----- Static Variables ----- */
   _CanvasChess.PLAYER_WHITE = "w";
   _CanvasChess.PLAYER_BLACK = "b";
+  _CanvasChess.PLAYER_BOTH = "both";
   _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
   _CanvasChess.currentPlayerTurn = _CanvasChess.PLAYER_WHITE;
 
@@ -54,6 +55,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._board.updateSideLength(_getLength.call(this));
   };
   _CanvasChess.prototype.resetBoard = function () {
+    if (this._endingScreen !== null) {
+      this._endingScreen.hide();
+    }
+
     // Update for a reset
     this._model.reset();
 
@@ -88,6 +93,11 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     _updatePlayerTurnText.call(this);
     // Trigger the move event
     this.$triggerEvent('onPlayerMove', [{move: moveDetails}]);
+    if (this.isGameOver()) {
+      var causeOfGameEnd = _getGameOverCause.call(this);
+      _showGameOverText.call(this, causeOfGameEnd);
+      this.$triggerEvent('onGameEnd', [{cause: causeOfGameEnd}]);
+    }
     return moveDetails;
   };
 
@@ -132,6 +142,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._pieceURL = null;
 
   // Class Variables
+  _CanvasChess.prototype._canPlay = _CanvasChess.PLAYER_BOTH; // by default they can move pieces from either colour
   _CanvasChess.prototype._players = {
     'w' : {
       'label' : 'White\'s Turn'
@@ -158,6 +169,8 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._board = null;
   /** @type ActivePlayerBanner **/
   _CanvasChess.prototype._activePlayerBanner = null;
+  /** @type ChessEndingScreen **/
+  _CanvasChess.prototype._endingScreen = null;
 
   /* ----- Private Methods ----- */
   /**
@@ -225,14 +238,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
 
     /* Enforce which side of the board the player plays */
-    this._canPlay = 'both'; // by default they can move pieces from either colour
-    if (options.canPlay) {
-        // we ignore options other than 'white' or 'black'
-        switch (options.canPlay) {
-            case 'white' :
-            case 'black' :
-                this._canPlay = options.canPlay;
-        }
+    if (typeof options.canPlay === 'string') {
+      // we ignore options other than 'white' or 'black'
+      switch (options.canPlay) {
+        case 'white' :
+        case 'black' :
+          this._canPlay = options.canPlay;
+      }
     }
 
     /* Theme Options */
@@ -281,8 +293,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       setTimeout(function () {
         _calculateSize.call(_this, e);
 
-        _this._board.updateSideLength(_getLength.call(_this));
-        _this._activePlayerBanner.updateForNewCanvasSize(_getLength.call(_this));
+        var sideLength = _getLength.call(_this);
+        _this._board.updateSideLength(sideLength);
+        _this._activePlayerBanner.updateForNewCanvasSize(sideLength);
+        _updateEndingScreenLocation.call(_this);
       }, 0);
     });
 
@@ -423,8 +437,24 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._activePlayerBanner.y = this._canvasBorderBuffer;
     this._stage.addChild(this._activePlayerBanner);
 
+    // Create the Ending Screen
+    this._endingScreen = new ChessEndingScreen(sideLength - (sideLength / 10 * 2));
+    _updateEndingScreenLocation.call(this);
+    this._endingScreen.hide();
+    this._stage.addChild(this._endingScreen);
+
     // Start Game
     this.$triggerEvent('onGameStart', []);
+  }
+
+  function _updateEndingScreenLocation() {
+    var sideLength = _getLength.call(this);
+
+    this._endingScreen.x = this._canvasBorderBuffer + sideLength / 10;
+    this._endingScreen.y = this._canvasBorderBuffer * 2 + sideLength / 10;
+
+    var size = sideLength - (sideLength / 10 * 2);
+    this._endingScreen.resize(size);
   }
 
   function _updatePlayerTurnText() {
@@ -436,6 +466,30 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
   function _getLength() {
     return Math.min(this._canvasTag.height - this._canvasBorderBuffer * 2, this._canvasTag.width - this._canvasBorderBuffer * 2);
+  }
+
+  /**
+   * @private
+   * @param reasonForGameEnd {string} - The reason for game end (@see _getGameOverCause)
+   */
+  function _showGameOverText(reasonForGameEnd) {
+    // Handle the auto switching of players (we want the last to play)
+    var lastToPlay = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? CanvasChess.PLAYER_BLACK : CanvasChess.PLAYER_WHITE;
+
+    this._endingScreen.show(reasonForGameEnd, lastToPlay);
+  }
+
+  function _getGameOverCause() {
+    var reason = null;
+    if (this._model.in_checkmate()) {
+      reason = ChessEndingScreen.ENDING_TYPES.CHECKMATE;
+    } else if (this._model.in_stalemate()) {
+      reason = ChessEndingScreen.ENDING_TYPES.STALEMATE;
+    } else if (this._model.in_draw()) {
+      reason = ChessEndingScreen.ENDING_TYPES.DRAW;
+    }
+
+    return reason;
   }
 
   /**
