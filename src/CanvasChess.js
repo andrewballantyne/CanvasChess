@@ -15,6 +15,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.PLAYER_WHITE = "w";
   _CanvasChess.PLAYER_BLACK = "b";
   _CanvasChess.PLAYER_BOTH = "both";
+  _CanvasChess.PLAYER_NONE = "none";
   _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
   _CanvasChess.currentPlayerTurn = _CanvasChess.PLAYER_WHITE;
 
@@ -242,8 +243,12 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       // we ignore options other than 'white' or 'black'
       switch (options.canPlay) {
         case 'white' :
+          this._canPlay = CanvasChess.PLAYER_WHITE;
+          break;
+
         case 'black' :
-          this._canPlay = options.canPlay;
+          this._canPlay = CanvasChess.PLAYER_BLACK;
+          break;
       }
     }
 
@@ -303,6 +308,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     /* Touches/Clicks */
     var isDown = false;
     var inputDown = function (e) {
+      _this._endingScreen.hide();
+      if (CanvasChess.currentPlayerTurn !== _this._canPlay) return;
+
       var loc = _convertToXY.call(_this, e);
       isDown = _this._board.inputDown(loc);
     };
@@ -477,6 +485,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     var lastToPlay = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? CanvasChess.PLAYER_BLACK : CanvasChess.PLAYER_WHITE;
 
     this._endingScreen.show(reasonForGameEnd, lastToPlay);
+    this._canPlay = CanvasChess.PLAYER_NONE;
   }
 
   function _getGameOverCause() {
