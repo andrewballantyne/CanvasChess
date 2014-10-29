@@ -63,7 +63,9 @@ var ChessListener = (function (isAbstract) {
     if (this._eventListenerMap[eventName] === undefined) {
       this._eventListenerMap[eventName] = [];
     }
-    this._eventListenerMap[eventName].push(callback);
+    if (this._eventListenerMap[eventName].indexOf(callback) < 0) { // prevent multiple of the same callback
+      this._eventListenerMap[eventName].push(callback);
+    }
   };
 
   /* ----- Protected Methods ----- */

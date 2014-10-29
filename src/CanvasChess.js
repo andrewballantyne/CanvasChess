@@ -62,7 +62,6 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       this._endingScreen.hide();
     }
     // Reset the options
-    this._canPlay = CanvasChess.PLAYER_BOTH;
     _parseOptions.call(this, this._startupOptions);
     // Update for a reset
     this._model.reset();
@@ -98,7 +97,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     // Trigger the move event
     this.$triggerEvent('onPlayerMove', [{move: moveDetails}]);
     // Check to see if we need to update the graveyard
-    if (moveDetails !== null && (moveDetails.captured !== undefined)) {
+    if (moveDetails !== null && moveDetails.captured !== undefined) {
       // TODO: add to graveyard
     }
     // Validate to see if this move ended the game
@@ -152,9 +151,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._startupOptions = null;
   _CanvasChess.prototype._demoMode = false;
   _CanvasChess.prototype._pieceURL = null;
+  _CanvasChess.prototype._canPlay = _CanvasChess.PLAYER_BOTH; // by default they can move pieces from either colour
 
   // Class Variables
-  _CanvasChess.prototype._canPlay = _CanvasChess.PLAYER_BOTH; // by default they can move pieces from either colour
   _CanvasChess.prototype._players = {
     'w' : {
       'label' : 'White\'s Turn'
@@ -245,11 +244,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    */
   function _parseOptions(options) {
     /* Demo Mode Option */
+    this._demoMode = false;
     if (typeof options.demoMode === 'boolean') {
       this._demoMode = options.demoMode;
     }
 
     /* Enforce which side of the board the player plays */
+    this._canPlay = _CanvasChess.PLAYER_BOTH;
     if (typeof options.canPlay === 'string') {
       // we ignore options other than 'white' or 'black'
       switch (options.canPlay) {
@@ -264,6 +265,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
 
     /* Theme Options */
+    this._pieceURL = 'assets/sprites/pieces/Chess_Pieces_Sprite.svg';
     if (typeof options.theme === 'object') {
       if (typeof options.theme.piecesUrl === 'string') {
         this._pieceURL = options.theme.piecesUrl;
@@ -295,8 +297,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     if (typeof options.events === 'object') {
       for (var eventName in options.events) {
         if (!options.events.hasOwnProperty(eventName)) continue;
-
-        this.registerCallbackEvent(eventName, options.events[eventName]);
+        var eventCallback = options.events[eventName];
+        if (typeof eventCallback !== 'function') continue; // we only want methods
+        this.registerCallbackEvent(eventName, eventCallback);
       }
     }
   }
