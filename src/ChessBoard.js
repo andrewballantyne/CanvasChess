@@ -11,9 +11,6 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
   ClassVehicle.setupClassExtend(_ChessBoard, SuperClass, isAbstract);
 
-  /* ----- Static Variables ----- */
-  _ChessBoard.letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
-
   /**
    * @constructor
    *
@@ -113,15 +110,15 @@ var ChessBoard = (function (SuperClass, isAbstract) {
       this._labelContainer.removeAllChildren();
     }
 
-    var letters = ChessBoard.letters;
+    var letters = ChessStatics.LABEL_LETTERS;
     var labelsPerSide = 8;
     var font = _getFontSize.call(this) + 'px Arial';
     var labelColor = 'black';
     // Loop the bisects (intersecting x and y)
     for (var num = 0; num < labelsPerSide; num++) {
       // Determine the letter and number for this bisect
-      var letter = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? letters[num] : letters[letters.length - num - 1];
-      var number = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? labelsPerSide - num : num + 1;
+      var letter = (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) ? letters[num] : letters[letters.length - num - 1];
+      var number = (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) ? labelsPerSide - num : num + 1;
 
       /* Print Letters */
       var topText = new createjs.Text(letter, font, labelColor);

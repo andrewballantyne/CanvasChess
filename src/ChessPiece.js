@@ -42,7 +42,7 @@ var ChessPiece = (function (SuperClass, isAbstract) {
   _ChessPiece.prototype.highlight = function () {
     if (this.shadow !== null) return;
 
-    this.shadow = new createjs.Shadow(CanvasChess.colorScheme.pieceHighlightColor, 0, 0, 15);
+    this.shadow = new createjs.Shadow(ChessStatics.colorScheme.pieceHighlightColor, 0, 0, 15);
   };
   /**
    * UnHighlight this piece.

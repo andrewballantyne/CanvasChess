@@ -23,9 +23,9 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
     this._ss = ss;
     this._squareLength = squareSideLength;
-    this._lightColor = CanvasChess.colorScheme.lightSquareColor;
-    this._darkColor = CanvasChess.colorScheme.darkSquareColor;
-    this._availableMovesColor = CanvasChess.colorScheme.availableMoveSquareColor;
+    this._lightColor = ChessStatics.colorScheme.lightSquareColor;
+    this._darkColor = ChessStatics.colorScheme.darkSquareColor;
+    this._availableMovesColor = ChessStatics.colorScheme.availableMoveSquareColor;
     this._chessListener = chessListener;
 
     this.width = this.height = squareSideLength * this._GRID_SIZE;
@@ -158,7 +158,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
           xPos += parseInt(thisPiece) - 1;
         } else {
           // We have a piece, let's place it
-          var loc = ChessBoard.letters[xPos] + (8 - i).toString();
+          var loc = ChessStatics.LABEL_LETTERS[xPos] + (8 - i).toString();
 
           var piece = null;
           piece = new ChessPiece(this._ss, thisPiece, _getPlacementPosition.call(this, loc));
@@ -279,9 +279,9 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       letterIndex++;
     } while(x > 0);
     var letter =
-      (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ?
-        ChessBoard.letters[--letterIndex] :
-        ChessBoard.letters[this._GRID_SIZE - letterIndex];
+      (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) ?
+        ChessStatics.LABEL_LETTERS[--letterIndex] :
+        ChessStatics.LABEL_LETTERS[this._GRID_SIZE - letterIndex];
 
     var number = 0;
     var y = inputPoint.y;
@@ -289,7 +289,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       y -= this._squareLength;
       number++;
     } while(y > 0);
-    number = (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ? (this._GRID_SIZE - number + 1) : number;
+    number = (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) ? (this._GRID_SIZE - number + 1) : number;
 
     return letter + number.toString();
   }
@@ -340,7 +340,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     var theLetter;
     var theNumber;
     if (isKingCastle || isQueenCastle) {
-      theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
+      theNumber = (ChessStatics.currentPlayerTurn === ChessStatics.PLAYER_WHITE) ? 1 : 8;
       theLetter = (isQueenCastle) ? 'c' : 'g';
     } else {
       theLetter = boardCoordinate.charAt(0);
@@ -348,10 +348,10 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     }
 
     var boardSideLength = this.width;
-    var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
+    var letterPos = ChessStatics.LABEL_LETTERS.indexOf(theLetter.toLowerCase());
     var x = 0;
     var y = 0;
-    if (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) {
+    if (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) {
       x = this._squareLength * letterPos;
       y = this._squareLength * (this._GRID_SIZE - theNumber);
     } else {
@@ -549,7 +549,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       var isQueenCastle = this._CASTLE_QS_REG_EX.test(thisMove);
       if (isKingCastle || isQueenCastle) {
         // This move is a castling move, check if it matches the square clicked
-        var theNumber = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? 1 : 8;
+        var theNumber = (ChessStatics.currentPlayerTurn === ChessStatics.PLAYER_WHITE) ? 1 : 8;
         var theLetter = (isQueenCastle) ? 'c' : 'g';
         possibleMove = theLetter + theNumber.toString();
         if (possibleMove === gridInputLocation) {

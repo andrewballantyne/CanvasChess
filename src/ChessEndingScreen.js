@@ -64,10 +64,10 @@ var ChessEndingScreen = (function (SuperClass, isAbstract) {
     // Convert short player name into long player name
     if (reasonForWin === ChessEndingScreen.ENDING_TYPES.STALEMATE) {
       // For our text, we want the opposite
-      lastMoveBy = (lastMoveBy === CanvasChess.PLAYER_WHITE) ? 'Black' : 'White';
+      lastMoveBy = (lastMoveBy === ChessStatics.PLAYER_WHITE) ? 'Black' : 'White';
     } else {
       // Standard convert
-      lastMoveBy = (lastMoveBy === CanvasChess.PLAYER_WHITE) ? 'White' : 'Black';
+      lastMoveBy = (lastMoveBy === ChessStatics.PLAYER_WHITE) ? 'White' : 'Black';
     }
 
     // Render everything

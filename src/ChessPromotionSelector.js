@@ -78,7 +78,7 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
    * Show the Promotion Selector for the current player.
    */
   _ChessPromotionSelector.prototype.show = function () {
-    _createOptions.call(this, CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE);
+    _createOptions.call(this, ChessStatics.currentPlayerTurn === ChessStatics.PLAYER_WHITE);
     this.visible = true;
   };
   /**
@@ -106,7 +106,7 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
     this.height = squareSize * 2;
 
     _drawBackground.call(this);
-    _createOptions.call(this, CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE);
+    _createOptions.call(this, ChessStatics.currentPlayerTurn === ChessStatics.PLAYER_WHITE);
   };
 
   /* ----- Protected Methods ----- */

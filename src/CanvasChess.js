@@ -11,23 +11,6 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
   ClassVehicle.setupClassExtend(_CanvasChess, SuperClass, isAbstract);
 
-  /* ----- Static Variables ----- */
-  _CanvasChess.PLAYER_WHITE = "w";
-  _CanvasChess.PLAYER_BLACK = "b";
-  _CanvasChess.PLAYER_BOTH = "both";
-  _CanvasChess.PLAYER_NONE = "none";
-  _CanvasChess.bottomPlayer = _CanvasChess.PLAYER_WHITE;
-  _CanvasChess.currentPlayerTurn = _CanvasChess.PLAYER_WHITE;
-
-  _CanvasChess.colorScheme = {
-    darkSquareColor: 'black',
-    lightSquareColor: 'white',
-    pieceHighlightColor: 'rgba(255, 127, 0, .9)',
-    availableMoveSquareColor: 'rgba(51, 255, 51, .4)'
-  };
-
-  _CanvasChess.isMobile = (/iPhone|iPod|iPad|Android|BlackBerry|Windows Phone/).test(navigator.userAgent);
-
   /**
    * @constructor
    *
@@ -50,10 +33,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
   /* ----- Public Methods ----- */
   _CanvasChess.prototype.rotate = function () {
-    CanvasChess.bottomPlayer =
-      (CanvasChess.bottomPlayer === CanvasChess.PLAYER_WHITE) ?
-        CanvasChess.PLAYER_BLACK :
-        CanvasChess.PLAYER_WHITE;
+    ChessStatics.bottomPlayer =
+      (ChessStatics.bottomPlayer === ChessStatics.PLAYER_WHITE) ?
+        ChessStatics.PLAYER_BLACK :
+        ChessStatics.PLAYER_WHITE;
     this._board.updateSideLength(_getLength.call(this));
   };
   _CanvasChess.prototype.resetBoard = function () {
@@ -151,7 +134,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._startupOptions = null;
   _CanvasChess.prototype._demoMode = false;
   _CanvasChess.prototype._pieceURL = null;
-  _CanvasChess.prototype._canPlay = _CanvasChess.PLAYER_BOTH; // by default they can move pieces from either colour
+  _CanvasChess.prototype._canPlay = ChessStatics.PLAYER_BOTH; // by default they can move pieces from either colour
 
   // Class Variables
   _CanvasChess.prototype._players = {
@@ -255,16 +238,16 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
 
     /* Enforce which side of the board the player plays */
-    this._canPlay = _CanvasChess.PLAYER_BOTH;
+    this._canPlay = ChessStatics.PLAYER_BOTH;
     if (typeof options.canPlay === 'string') {
       // we ignore options other than 'white' or 'black'
       switch (options.canPlay) {
         case 'white' :
-          this._canPlay = CanvasChess.PLAYER_WHITE;
+          this._canPlay = ChessStatics.PLAYER_WHITE;
           break;
 
         case 'black' :
-          this._canPlay = CanvasChess.PLAYER_BLACK;
+          this._canPlay = ChessStatics.PLAYER_BLACK;
           break;
       }
     }
@@ -276,23 +259,23 @@ var CanvasChess = (function (SuperClass, isAbstract) {
         this._pieceURL = options.theme.piecesUrl;
       }
       if (typeof options.theme.lightSquareColor === 'string') {
-        CanvasChess.colorScheme.lightSquareColor = options.theme.lightSquareColor;
+        ChessStatics.colorScheme.lightSquareColor = options.theme.lightSquareColor;
       }
       if (typeof options.theme.darkSquareColor === 'string') {
-        CanvasChess.colorScheme.darkSquareColor = options.theme.darkSquareColor;
+        ChessStatics.colorScheme.darkSquareColor = options.theme.darkSquareColor;
       }
       if (typeof options.theme.pieceHighlightColor === 'string') {
-        CanvasChess.colorScheme.pieceHighlightColor = options.theme.pieceHighlightColor;
+        ChessStatics.colorScheme.pieceHighlightColor = options.theme.pieceHighlightColor;
       }
       if (typeof options.theme.availableMovesColor === 'string') {
-        CanvasChess.colorScheme.availableMoveSquareColor = options.theme.availableMovesColor;
+        ChessStatics.colorScheme.availableMoveSquareColor = options.theme.availableMovesColor;
       }
     }
 
     /* Game Options */
     if (typeof options.position === 'string') {
       this.setFenString(options.position);
-      CanvasChess.currentPlayerTurn = this._model.turn();
+      ChessStatics.currentPlayerTurn = this._model.turn();
     }
 
     /* Players Options */
@@ -325,7 +308,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     var isDown = false;
     var inputDown = function (e) {
       _this._endingScreen.hide();
-      if (CanvasChess.currentPlayerTurn !== _this._canPlay) return;
+      if (ChessStatics.currentPlayerTurn !== _this._canPlay) return;
 
       var loc = _convertToXY.call(_this, e);
       isDown = _this._board.inputDown(loc);
@@ -338,7 +321,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 //        console.log("Moving around inside the board");
       }
 
-      if (CanvasChess.isMobile) {
+      if (ChessStatics.IS_MOBILE) {
         // TODO: Only suppress page scrolling when we have an action to do
         e.preventDefault(); // prevents page scrolling (touch)
       }
@@ -352,7 +335,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       }
     };
 
-    if (CanvasChess.isMobile) {
+    if (ChessStatics.IS_MOBILE) {
       this._canvasTag.addEventListener('touchstart', inputDown);
       this._canvasTag.addEventListener('touchmove', inputMove);
       this._canvasTag.addEventListener('touchend', inputUp);
@@ -370,7 +353,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    */
   function _convertToXY(e) {
     var x, y;
-    if (CanvasChess.isMobile) {
+    if (ChessStatics.IS_MOBILE) {
       x = e.touches[0].clientX;
       y = e.touches[0].clientY;
 
@@ -453,7 +436,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     this._board.useFen(this._model.fen());
 
     // Create the Player's Turn Banner
-    this._activePlayerBanner = new ActivePlayerBanner(sideLength, this._players, CanvasChess.currentPlayerTurn);
+    this._activePlayerBanner = new ActivePlayerBanner(sideLength, this._players, ChessStatics.currentPlayerTurn);
     this._stage.addChild(this._activePlayerBanner);
 
     // Create the Ending Screen
@@ -492,9 +475,9 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   }
 
   function _updatePlayerTurnText() {
-    CanvasChess.currentPlayerTurn = this._model.turn();
+    ChessStatics.currentPlayerTurn = this._model.turn();
     if (this._activePlayerBanner !== null) {
-      this._activePlayerBanner.changePlayer(CanvasChess.currentPlayerTurn);
+      this._activePlayerBanner.changePlayer(ChessStatics.currentPlayerTurn);
     }
   }
 
@@ -511,10 +494,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    */
   function _showGameOverText(reasonForGameEnd) {
     // Handle the auto switching of players (we want the last to play)
-    var lastToPlay = (CanvasChess.currentPlayerTurn === CanvasChess.PLAYER_WHITE) ? CanvasChess.PLAYER_BLACK : CanvasChess.PLAYER_WHITE;
+    var lastToPlay =
+      (ChessStatics.currentPlayerTurn === ChessStatics.PLAYER_WHITE) ?
+        ChessStatics.PLAYER_BLACK :
+        ChessStatics.PLAYER_WHITE;
 
     this._endingScreen.show(reasonForGameEnd, lastToPlay);
-    this._canPlay = CanvasChess.PLAYER_NONE;
+    this._canPlay = ChessStatics.PLAYER_NONE;
   }
 
   function _getGameOverCause() {
