@@ -28,6 +28,8 @@ var ChessGrid = (function (SuperClass, isAbstract) {
     this._availableMovesColor = CanvasChess.colorScheme.availableMoveSquareColor;
     this._chessListener = chessListener;
 
+    this.width = this.height = squareSideLength * this._GRID_SIZE;
+
     _drawLightBackdrop.call(this);
     _drawDarkSquares.call(this);
     _createPromotionSelector.call(this);
@@ -38,16 +40,6 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   /* ----- Protected Variables ----- */
 
   /* ----- Public Methods ----- */
-  /**
-   * @override
-   * Checks if within the ChessGrid.
-   *
-   * @param inputPoint {createjs.Point} - An x/y location of the input
-   * @returns {boolean} - True if within, false if not
-   */
-  _ChessGrid.prototype.isWithin = function (inputPoint) {
-    return this.$checkRect(inputPoint, this.x, this.y, this._squareLength * this._GRID_SIZE, this._squareLength * this._GRID_SIZE);
-  };
   /**
    * @override
    * Down on the ChessGrid; first we want to check if that's true, and then we can manage the input as a local point inside the grid.
@@ -81,6 +73,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
   _ChessGrid.prototype.updateSize = function (squareSideLength) {
     // Save the length
     this._squareLength = squareSideLength;
+    this.width = this.height = this._squareLength * this._GRID_SIZE;
 
     // Update all children
     _drawLightBackdrop.call(this);
@@ -243,7 +236,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
 
     this._lightBackdrop.graphics
       .beginFill(this._lightColor)
-      .drawRect(0, 0, this._squareLength * this._GRID_SIZE, this._squareLength * this._GRID_SIZE);
+      .drawRect(0, 0, this.width, this.height);
   }
 
   function _drawDarkSquares() {
@@ -354,7 +347,7 @@ var ChessGrid = (function (SuperClass, isAbstract) {
       theNumber = parseInt(boardCoordinate.charAt(1));
     }
 
-    var boardSideLength = this._squareLength * this._GRID_SIZE;
+    var boardSideLength = this.width;
     var letterPos = ChessBoard.letters.indexOf(theLetter.toLowerCase());
     var x = 0;
     var y = 0;

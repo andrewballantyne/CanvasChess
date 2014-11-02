@@ -14,12 +14,27 @@ var BoundingBoxContainer = (function (SuperClass, isAbstract) {
   /**
    * @constructor
    *
+   * @param width {number?} - Optional. Width of the container
+   * @param height {number?} - Optional. Height of the container
    */
-  function BoundingBoxContainerConstructor() {
+  function BoundingBoxContainerConstructor(width, height) {
     SuperClass.call(this); // super call
+
+    if (width !== undefined) {
+      this.width = width;
+    }
+    if (height !== undefined) {
+      this.height = height;
+    }
   }
 
   /* ----- Public Variables ----- */
+  _BoundingBoxContainer.prototype.height = 0;
+  _BoundingBoxContainer.prototype.width = 0;
+
+  /* ----- Protected Variables ----- */
+
+  /* ----- Public Methods ----- */
   /**
    * @abstract
    * To be overridden in a child class to implement their own flair of within a bounding box. Some may use rectangles, some may be more
@@ -29,7 +44,8 @@ var BoundingBoxContainer = (function (SuperClass, isAbstract) {
    * @returns {boolean} - True if within, false if not
    */
   _BoundingBoxContainer.prototype.isWithin = function (inputPoint) {
-    throw new Error("'isWithin' is an abstract method, and cannot be called directly.");
+    var xy = this.$getXY();
+    return this.$checkRect(inputPoint, xy.x, xy.y, this.width, this.height);
   };
   /**
    * Very rough implementation to check the within function on this object.
@@ -41,16 +57,14 @@ var BoundingBoxContainer = (function (SuperClass, isAbstract) {
     return this.isWithin(inputPoint);
   };
 
-  /* ----- Protected Variables ----- */
-
-  /* ----- Public Methods ----- */
-
   /* ----- Protected Methods ----- */
+  /**
+   * Gets the x/y point (corrected for any registration offsets (regX and regY)).
+   *
+   * @returns {createjs.Point} - The x/y point of this object, corrected for regX/regY
+   */
   _BoundingBoxContainer.prototype.$getXY = function () {
-    return {
-      x : this.x - this.regX,
-      y : this.y - this.regY
-    }
+    return new createjs.Point(this.x - this.regX, this.y - this.regY);
   };
   /**
    * @protected

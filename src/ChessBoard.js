@@ -37,18 +37,7 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   /* ----- Public Methods ----- */
   /**
    * @override
-   * Check to see if a point is within the ChessBoard.
-   *
-   * @param inputPoint {createjs.Point} - An x/y location of the input
-   * @returns {boolean} - The result of the isWithin function (true if inside, false if not)
-   */
-  _ChessBoard.prototype.isWithin = function (inputPoint) {
-    var xy = this.$getXY(); // corrects for regX/regY
-    return this.$checkRect(inputPoint, xy.x, xy.y, this._fullBoardSideLength, this._fullBoardSideLength);
-  };
-  /**
-   * @override
-   * Check
+   * Down on the Chess Board.
    *
    * @param inputPoint {createjs.Point} - An x/y location of the input
    * @returns {boolean} - True if we (or any of our children) made contact with something, false if we did nothing with the input
@@ -98,7 +87,6 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   };
 
   /* ----- Private Variables ----- */
-  _ChessBoard.prototype._fullBoardSideLength = 0;
   _ChessBoard.prototype._gridCellSideLength = 0;
 
   /** @type createjs.Container **/
@@ -112,8 +100,8 @@ var ChessBoard = (function (SuperClass, isAbstract) {
   }
 
   function _calculateLength(sideLength) {
-    this._fullBoardSideLength = sideLength;
-    this._gridCellSideLength = this._fullBoardSideLength / 10;
+    this.width = this.height = sideLength;
+    this._gridCellSideLength = sideLength / 10;
   }
 
   function _renderLabels() {

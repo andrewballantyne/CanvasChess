@@ -5,7 +5,7 @@
  * Created by Andrew on 22/10/14.
  *
  * @requires ClassVehicle
- * @extends createjs.Container
+ * @extends BoundingBoxContainer
  */
 var ChessPromotionSelector = (function (SuperClass, isAbstract) {
   /* Setup Extend Link and Setup Class Defaults */
@@ -31,8 +31,6 @@ var ChessPromotionSelector = (function (SuperClass, isAbstract) {
   }
 
   /* ----- Public Variables ----- */
-  _ChessPromotionSelector.prototype.height = 0;
-  _ChessPromotionSelector.prototype.width = 0;
 
   /* ----- Protected Variables ----- */
 
