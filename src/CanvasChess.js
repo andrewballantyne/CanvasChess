@@ -163,6 +163,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
     }
   };
   _CanvasChess.prototype._savedClientHeight = 0;
+  _CanvasChess.prototype._savedClientWidth = 0;
 
   // DOM
   _CanvasChess.prototype._canvasId = 'canvasChess';
@@ -209,11 +210,13 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   }
 
   function _calculateSize() {
-    if (this._savedClientHeight === document.documentElement.clientHeight) {
-      // Let's not update if we are still dealing with the same viewport height (mobile scrolling will introduce new interesting things)
+    if (this._savedClientHeight === document.documentElement.clientHeight &&
+        this._savedClientWidth === document.documentElement.clientWidth) {
+      // Let's not update if we are still dealing with the same viewport size (mobile scrolling will introduce new interesting things)
       return;
     }
     this._savedClientHeight = document.documentElement.clientHeight;
+    this._savedClientWidth = document.documentElement.clientWidth;
 
     var width = this._containerTag.offsetWidth;
     var height;
