@@ -67,6 +67,8 @@ var ActivePlayerBanner = (function (SuperClass, isAbstract) {
   function _render(canvasSize) {
     var size = canvasSize / this._sizeDenominator;
     this._currentPlayerText = new createjs.Text(this._currentPlayer.label, _getFont.call(this, size), 'black');
+    this._currentPlayerText.textAlign = 'center';
+    this._currentPlayerText.textBaseline = 'middle';
     this.addChild(this._currentPlayerText);
   }
 

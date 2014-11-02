@@ -173,6 +173,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   _CanvasChess.prototype._containerTag = null;
   _CanvasChess.prototype._containerHasFixedHeight = false;
   _CanvasChess.prototype._canvasBorderBuffer = 15;
+  _CanvasChess.prototype._playerTextYOffset = 20;
 
   // Canvas
   /** @type createjs.Stage **/
@@ -210,13 +211,14 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   }
 
   function _calculateSize() {
-    if (this._savedClientHeight === document.documentElement.clientHeight &&
-        this._savedClientWidth === document.documentElement.clientWidth) {
+    var docHeight = document.documentElement.clientHeight;
+    var docWidth = document.documentElement.clientWidth;
+    if (this._savedClientHeight === docHeight && this._savedClientWidth === docWidth) {
       // Let's not update if we are still dealing with the same viewport size (mobile scrolling will introduce new interesting things)
       return;
     }
-    this._savedClientHeight = document.documentElement.clientHeight;
-    this._savedClientWidth = document.documentElement.clientWidth;
+    this._savedClientHeight = docHeight;
+    this._savedClientWidth = docWidth;
 
     var width = this._containerTag.offsetWidth;
     var height;
@@ -227,7 +229,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       // No Fixed height, a common DOM situation, as the container does not have a set height and will expand as content fills it.
       // Since we need a height, let's do some quick calculations based on the window size and the location of the container from
       // the top
-      height = this._savedClientHeight - (this._containerTag.getBoundingClientRect().top * 2);
+      height = this._savedClientHeight - (this._containerTag.getBoundingClientRect().top + window.scrollY) * 2;
       // (above) * 2: one for the top offset + one as a bottom buffer
     }
     if (window.devicePixelRatio !== 1) { // quality degrades if you apply an equal width/height to the style that is used in the attributes
@@ -315,10 +317,7 @@ var CanvasChess = (function (SuperClass, isAbstract) {
       setTimeout(function () {
         _calculateSize.call(_this, e);
 
-        var sideLength = _getLength.call(_this);
-        _this._board.updateSideLength(sideLength);
-        _this._activePlayerBanner.updateForNewCanvasSize(sideLength);
-        _updateEndingScreenLocation.call(_this);
+        _updateLocations.call(_this);
       }, 0);
     });
 
@@ -444,13 +443,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
    * @param ss {createjs.SpriteSheet} - The SpriteSheet for the pieces
    */
   function _renderFunction(ss) {
-    // Create the Board
     var sideLength = _getLength.call(this);
+
+    // Create the Board
     this._board = new ChessBoard(sideLength, ss, this);
-    this._board.regX = sideLength / 2;
-    this._board.regY = sideLength / 2;
-    this._board.x = this._canvasBorderBuffer + sideLength / 2;
-    this._board.y = (this._canvasBorderBuffer * 2) + sideLength / 2;
     this._stage.addChild(this._board);
 
     // Set the board to use the current fen
@@ -458,28 +454,41 @@ var CanvasChess = (function (SuperClass, isAbstract) {
 
     // Create the Player's Turn Banner
     this._activePlayerBanner = new ActivePlayerBanner(sideLength, this._players, CanvasChess.currentPlayerTurn);
-    this._activePlayerBanner.x = this._canvasBorderBuffer;
-    this._activePlayerBanner.y = this._canvasBorderBuffer;
     this._stage.addChild(this._activePlayerBanner);
 
     // Create the Ending Screen
     this._endingScreen = new ChessEndingScreen(sideLength - (sideLength / 10 * 2));
-    _updateEndingScreenLocation.call(this);
     this._endingScreen.hide();
     this._stage.addChild(this._endingScreen);
+
+    _updateLocations.call(this, false);
 
     // Start Game
     this.$triggerEvent('onGameStart', []);
   }
 
-  function _updateEndingScreenLocation() {
+  /**
+   * @private
+   * @param updateInternally {boolean?} - True to update each item internally based on the new location and size; false to just update
+   *  the location
+   */
+  function _updateLocations(updateInternally) {
+    if (updateInternally === undefined) updateInternally = true;
     var sideLength = _getLength.call(this);
+
+    this._board.regX = sideLength / 2;
+    this._board.regY = sideLength / 2;
+    this._board.x = this._canvasBorderBuffer + sideLength / 2;
+    this._board.y = (this._canvasBorderBuffer * 2) + sideLength / 2;
+    if (updateInternally) this._board.updateSideLength(sideLength);
+
+    this._activePlayerBanner.x = this._board.x;
+    this._activePlayerBanner.y = this._playerTextYOffset;
+    if (updateInternally) this._activePlayerBanner.updateForNewCanvasSize(sideLength);
 
     this._endingScreen.x = this._canvasBorderBuffer + sideLength / 10;
     this._endingScreen.y = this._canvasBorderBuffer * 2 + sideLength / 10;
-
-    var size = sideLength - (sideLength / 10 * 2);
-    this._endingScreen.resize(size);
+    if (updateInternally) this._endingScreen.resize(sideLength - (sideLength / 10 * 2));
   }
 
   function _updatePlayerTurnText() {
@@ -490,7 +499,10 @@ var CanvasChess = (function (SuperClass, isAbstract) {
   }
 
   function _getLength() {
-    return Math.min(this._canvasTag.height - this._canvasBorderBuffer * 2, this._canvasTag.width - this._canvasBorderBuffer * 2);
+    return Math.min(
+      this._canvasTag.height - this._canvasBorderBuffer * 2 - this._playerTextYOffset,  // *2 = top/bottom
+      this._canvasTag.width - this._canvasBorderBuffer * 2                              // *2 = top/bottom
+    );
   }
 
   /**
